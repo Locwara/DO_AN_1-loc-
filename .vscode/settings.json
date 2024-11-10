@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.html": "html",
+        "*.django-html": "html"
+    },
+    "powermode.presets": "flames",
+    "powermode.enabled": true,
+    "powermode.explosions.backgroundMode": "mask",
+    "powermode.explosions.offset": 0.35,
+    "powermode.explosions.gifMode": "continue"
+}
