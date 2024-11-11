@@ -56,17 +56,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):  # Thêm PermissionsMixin
     def __str__(self):
         return self.username
 class Calam(models.Model):
-    macalam = models.CharField(max_length=10, primary_key=True)
+    macalam = models.AutoField(primary_key=True)  # Đổi thành AutoField
     manv = models.ForeignKey('Nhanvien', on_delete=models.CASCADE, db_column='manv')
     ngay = models.DateField()
     giobd = models.TimeField()
     giokt = models.TimeField()
-    
-    class Meta:  
-        db_table = 'calam'    
+
+    class Meta:
+        db_table = 'calam'
     
 class Nghiphep(models.Model):
-    manp = models.CharField(max_length=10, primary_key=True)
+    manp = models.AutoField(max_length=10, primary_key=True)
     manv = models.ForeignKey('Nhanvien', on_delete=models.CASCADE, db_column='manv')
     ngaybd = models.DateField()
     ngaykt = models.DateField()
@@ -78,7 +78,7 @@ class Nghiphep(models.Model):
         
         
 class Bangluong(models.Model):
-    maluong = models.CharField(max_length=10, primary_key=True)
+    maluong = models.AutoField(max_length=10, primary_key=True)
     manv = models.ForeignKey('Nhanvien', on_delete=models.CASCADE, db_column='manv')
     thangluong = models.DateField()
     sogio = models.FloatField()
@@ -89,11 +89,17 @@ class Bangluong(models.Model):
         db_table = 'bangluong'
 
     def save(self, *args, **kwargs):
-        # Tính toán tổng lương
-        self.tongluong = self.sogio * self.luongcoban
+        # Kiểm tra xem sogio và luongcoban có giá trị hay không
+        if self.sogio is not None and self.luongcoban is not None:
+            # Tính toán tổng lương
+            self.tongluong = self.sogio * self.luongcoban
+        else:
+            # Xử lý nếu sogio hoặc luongcoban là None (tùy theo yêu cầu)
+            self.tongluong = 0  # Hoặc xử lý theo cách phù hợp với logic của bạn
+
         # Gọi phương thức save của lớp cha
         super().save(*args, **kwargs)
-        
+
 class Nhanvien(models.Model):
     manv = models.AutoField(primary_key=True) 
     hoten = models.CharField(max_length=30)
@@ -111,7 +117,7 @@ class Nhanvien(models.Model):
 
 
 class Thietbi(models.Model):
-    matb = models.CharField(max_length=10, primary_key=True)
+    matb = models.AutoField(max_length=10, primary_key=True)
     tentb = models.CharField(max_length=50)
     loaitb = models.CharField(max_length=20)
     soluong =models.FloatField()
@@ -122,7 +128,7 @@ class Thietbi(models.Model):
         db_table = 'thietbi'
 
 class Baotri(models.Model):
-    mabt = models.CharField(max_length=10, primary_key=True)
+    mabt = models.AutoField(max_length=10, primary_key=True)
     matb = models.ForeignKey('Thietbi', on_delete=models.CASCADE, db_column='matb')
     ngaybt=models.DateField()
     mota =models.CharField(max_length=100)
@@ -132,7 +138,7 @@ class Baotri(models.Model):
         db_table = 'baotri'
 
 class Dungcu(models.Model):
-    madc = models.CharField(max_length=10, primary_key=True)
+    madc = models.AutoField(max_length=10, primary_key=True)
     tendc = models.CharField(max_length=50)
     soluong =models.IntegerField()
     dvt = models.CharField(max_length=20)
@@ -142,7 +148,7 @@ class Dungcu(models.Model):
         db_table = 'dungcu'
 
 class Thongtinnguyenlieu(models.Model):
-    manl = models.CharField(max_length=10, primary_key=True)
+    manl = models.AutoField(max_length=10, primary_key=True)
     tennl = models.CharField(max_length=30)
     dvt = models.CharField(max_length=10)
     soluong = models.FloatField()

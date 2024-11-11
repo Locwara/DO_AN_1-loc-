@@ -21,7 +21,8 @@ import string
 from django.db.models.functions import TruncDate, TruncMonth, TruncYear, ExtractYear, ExtractMonth
 from django.db.models import Count,  F, IntegerField, DurationField, ExpressionWrapper
 from django.utils import timezone
-
+import random
+from django.core.cache import cache
 from io import BytesIO
 # Create your views here.
 from django.http import JsonResponse
@@ -608,60 +609,185 @@ User = get_user_model()
 
 
 def login_view(request):
-    # Kiểm tra nếu user đã đăng nhập
     if request.user.is_authenticated:
         return redirect('trangchu')
     
-    # Khởi tạo form captcha
-
-    if request.method == 'POST':
-        # Xác thực captcha trước
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-            
-            if username and password:
-                user = authenticate(request, username=username, password=password)
-                
-                if user is not None:
-                    # Kiểm tra không cho phép admin đăng nhập
-                    if user.is_staff or user.is_superuser:
-                        messages.error(request, 'Tài khoản quản trị không được phép đăng nhập tại đây!')
-                        return render(request, 'home/dangnhap.html')
-                    
-                    # Đăng nhập thành công
-                    login(request, user)
-                    messages.success(request, 'Đăng nhập thành công!')
-                    return redirect('trangchu')
-                else:
-                    messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
-            else:
-                messages.error(request, 'Vui lòng nhập đầy đủ thông tin đăng nhập!')
-        
-
-    return render(request, 'home/dangnhap.html')
-
-
-def login_viewql(request):
-
-    if request.user.is_authenticated:
-        return redirect('trangchu')
-        
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        print(f"Login attempt: username={username}") 
-        user = authenticate(request, username=username, password=password)
-        print(f"Authentication result: user={user}")  
-        if user is not None:
-            if not (user.is_staff or user.is_superuser):
-                messages.error(request, 'Bạn không có quyền đăng nhập vào trang quản lý!')
-                return render(request, 'home/dangnhapquanly.html')
-            login(request, user)
-            messages.success(request, 'Đăng nhập thành công!')
-            return redirect('trangchu')
-        else:
-            messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
+        
+        if 'send_otp' in request.POST:
+            print(f"Attempting to send OTP for user: {username}")
+            user = authenticate(request, username=username, password=password)
+            
+            if user is not None:
+                if (user.is_staff or user.is_superuser):
+                    messages.error(request, 'Bạn không có quyền đăng nhập vào trang nhân viên!')
+                    return render(request, 'home/dangnhap.html')
+                
+                # Tạo và gửi OTP
+                otp = generate_otp()
+                cache_key = f'otp_{username}'
+                cache.set(cache_key, otp, 300)  # OTP hết hạn sau 5 phút
+                
+                print(f"Generated OTP: {otp} for user: {username}")
+                print(f"Stored in cache with key: {cache_key}")
+                
+                try:
+                    send_otp_email(user.email, otp)
+                    print(f"OTP sent successfully to: {user.email}")
+                except Exception as e:
+                    print(f"Error sending email: {str(e)}")
+                    messages.error(request, 'Có lỗi khi gửi mã OTP!')
+                    return render(request, 'home/dangnhap.html')
+                
+                context = {
+                    'username': username,
+                    'password': password,
+                    'show_otp': True,
+                    'message': 'Mã OTP đã được gửi đến email của bạn!'
+                }
+                messages.success(request, 'Mã OTP đã được gửi!')
+                return render(request, 'home/dangnhap.html', context)
+            else:
+                messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
+                
+        elif 'verify_otp' in request.POST:
+            print(f"Verifying OTP for user: {username}")
+            user_otp = request.POST.get('otp')
+            print(f"Received OTP: {user_otp}")
+            
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                cache_key = f'otp_{username}'
+                stored_otp = cache.get(cache_key)
+                print(f"Retrieved from cache - key: {cache_key}, stored OTP: {stored_otp}")
+                
+                if stored_otp and stored_otp.strip() == user_otp.strip():
+                    login(request, user)
+                    cache.delete(cache_key)
+                    messages.success(request, 'Đăng nhập thành công!')
+                    return redirect('trangchu')
+                else:
+                    print(f"OTP verification failed. Stored: {stored_otp}, Received: {user_otp}")
+                    messages.error(request, 'Mã OTP không đúng hoặc đã hết hạn!')
+                    context = {
+                        'username': username,
+                        'password': password,
+                        'show_otp': True
+                    }
+                    return render(request, 'home/dangnhap.html', context)
+            else:
+                messages.error(request, 'Thông tin đăng nhập không hợp lệ!')
+                
+    return render(request, 'home/dangnhap.html')
+
+def generate_otp():
+    otp = str(random.randint(100000, 999999))
+    print(f"Generated new OTP: {otp}")
+    return otp
+
+def send_otp_email(email, otp):
+    subject = 'Mã OTP Đăng nhập'
+    message = f'Mã OTP của bạn là: {otp}. Mã này sẽ hết hạn sau 5 phút.'
+    from_email = settings.EMAIL_HOST_USER
+    recipient_list = [email]
+    
+    print(f"Sending email to: {email}")
+    print(f"OTP in email: {otp}")
+    
+    send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+
+
+def login_viewql(request):
+    if request.user.is_authenticated:
+        return redirect('trangchu')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        if 'send_otp' in request.POST:
+            print(f"Attempting to send OTP for user: {username}")
+            user = authenticate(request, username=username, password=password)
+            
+            if user is not None:
+                if not (user.is_staff or user.is_superuser):
+                    messages.error(request, 'Bạn không có quyền đăng nhập vào trang quản lý!')
+                    return render(request, 'home/dangnhapquanly.html')
+                
+                # Tạo và gửi OTP
+                otp = generate_otp()
+                cache_key = f'otp_{username}'
+                cache.set(cache_key, otp, 300)  # OTP hết hạn sau 5 phút
+                
+                print(f"Generated OTP: {otp} for user: {username}")
+                print(f"Stored in cache with key: {cache_key}")
+                
+                try:
+                    send_otp_email(user.email, otp)
+                    print(f"OTP sent successfully to: {user.email}")
+                except Exception as e:
+                    print(f"Error sending email: {str(e)}")
+                    messages.error(request, 'Có lỗi khi gửi mã OTP!')
+                    return render(request, 'home/dangnhapquanly.html')
+                
+                context = {
+                    'username': username,
+                    'password': password,
+                    'show_otp': True,
+                    'message': 'Mã OTP đã được gửi đến email của bạn!'
+                }
+                messages.success(request, 'Mã OTP đã được gửi!')
+                return render(request, 'home/dangnhapquanly.html', context)
+            else:
+                messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
+                
+        elif 'verify_otp' in request.POST:
+            print(f"Verifying OTP for user: {username}")
+            user_otp = request.POST.get('otp')
+            print(f"Received OTP: {user_otp}")
+            
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                cache_key = f'otp_{username}'
+                stored_otp = cache.get(cache_key)
+                print(f"Retrieved from cache - key: {cache_key}, stored OTP: {stored_otp}")
+                
+                if stored_otp and stored_otp.strip() == user_otp.strip():
+                    login(request, user)
+                    cache.delete(cache_key)
+                    messages.success(request, 'Đăng nhập thành công!')
+                    return redirect('trangchu')
+                else:
+                    print(f"OTP verification failed. Stored: {stored_otp}, Received: {user_otp}")
+                    messages.error(request, 'Mã OTP không đúng hoặc đã hết hạn!')
+                    context = {
+                        'username': username,
+                        'password': password,
+                        'show_otp': True
+                    }
+                    return render(request, 'home/dangnhapquanly.html', context)
+            else:
+                messages.error(request, 'Thông tin đăng nhập không hợp lệ!')
+                
     return render(request, 'home/dangnhapquanly.html')
+
+def generate_otp():
+    otp = str(random.randint(100000, 999999))
+    print(f"Generated new OTP: {otp}")
+    return otp
+
+def send_otp_email(email, otp):
+    subject = 'Mã OTP Đăng nhập'
+    message = f'Mã OTP của bạn là: {otp}. Mã này sẽ hết hạn sau 5 phút.'
+    from_email = settings.EMAIL_HOST_USER
+    recipient_list = [email]
+    
+    print(f"Sending email to: {email}")
+    print(f"OTP in email: {otp}")
+    
+    send_mail(subject, message, from_email, recipient_list, fail_silently=False)
 def logout_view(request):
     logout(request)
     return redirect('index')  
@@ -1037,30 +1163,64 @@ def sua_bangluong(request, maluong):
             messages.error(request, 'Có lỗi xảy ra khi cập nhật. Vui lòng kiểm tra lại thông tin.')
     return redirect('bangluong')
 
+from django.db.models import Sum, F, ExpressionWrapper, DurationField
 def import_excel_bangluong(request):
     if request.method == "POST" and request.FILES['file']:
         try:
             excel_f = request.FILES['file']
             df = pd.read_excel(excel_f)
             success_ip = 0
+
             for index, row in df.iterrows():
                 try:
-                    Bangluong.objects.create(
-                        manv = row['Mã nhân viên'],
-                        sogio = row['Số giờ'],
-                        luongcoban = row['Lương cơ bản'],
-                        tongluong = row['Tổng lương']
-                       
-                    )
-                    success_ip += 1
+                    manv_id = row['Mã nhân viên']
+                    nhanvien = Nhanvien.objects.get(manv=manv_id)
+                    thang_luong = row['Tháng lương']
+
+                    # Tạo mã lương dựa trên mã nhân viên và tháng lương
+                    maluong = f"{manv_id}_{thang_luong.strftime('%Y%m')}"
+
+                    # Kiểm tra xem mã lương này đã tồn tại chưa
+                    if not Bangluong.objects.filter(maluong=maluong).exists():
+                        # Tính tổng số giờ làm việc của nhân viên trong tháng từ bảng Calam
+                        sogio = Calam.objects.filter(
+                            manv=nhanvien, 
+                            ngay__year=thang_luong.year, 
+                            ngay__month=thang_luong.month
+                        ).annotate(
+                            so_gio_lam=ExpressionWrapper(
+                                F('giokt') - F('giobd'), output_field=DurationField()
+                            )
+                        ).aggregate(tong_gio=Sum('so_gio_lam'))['tong_gio']
+
+                        # Đổi `sogio` từ `timedelta` sang số giờ (float)
+                        sogio = sogio.total_seconds() / 3600 if sogio else 0.0
+
+                        # Tạo bản ghi Bangluong với mã lương
+                        Bangluong.objects.create(
+                            maluong=maluong,
+                            manv=nhanvien,
+                            thangluong=thang_luong,
+                            sogio=sogio,
+                            luongcoban=row['Lương cơ bản'],
+                        )
+                        success_ip += 1
+                    else:
+                        messages.warning(request, f"Bản ghi với mã lương {maluong} đã tồn tại, bỏ qua dòng {index + 2}.")
+                except Nhanvien.DoesNotExist:
+                    messages.error(request, f"Lỗi ở dòng {index + 2}: Mã nhân viên {manv_id} không tồn tại.")
                 except Exception as e:
                     messages.error(request, f'Lỗi ở dòng {index + 2}: {str(e)}')
+                    
             if success_ip > 0:
-                messages.success(request, f'Import Thành công {success_ip} bản ghi')
+                messages.success(request, f'Import thành công {success_ip} bản ghi')
         except Exception as e:
             messages.error(request, f'Import thất bại: {str(e)}')
         return redirect('bangluong')
+    
     return render(request, 'home/luongnhanvien.html')
+
+
 #nghiphep
 @admin_required
 def nghi_phep(request):

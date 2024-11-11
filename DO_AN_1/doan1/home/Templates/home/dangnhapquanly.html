@@ -20,23 +20,40 @@
             </div>
             {% endif %}
             
-            <form method="POST">
+            <form method="post">
                 {% csrf_token %}
                 <div class="form-group">
-                    <input type="text" name="username" class="form-control" placeholder="Tên đăng nhập" required>
+                    <input type="text" name="username" id="username" value="{{ username|default:'' }}" required  placeholder="Nhập Tên đăng nhập">
                 </div>
                 
                 <div class="form-group">
-                    <input type="password" name="password" class="form-control" placeholder="Mật khẩu" required>
+                    <input type="password" name="password" id="password" value="{{ password|default:'' }}" required placeholder="Nhập mật khẩu">
                 </div>
+            
+                {% if not show_otp %}
+                    <button type="submit" name="send_otp" class="btn btn-primary">Nhận mã OTP</button>
+                {% endif %}
+            
+                {% if show_otp %}
+                    <div class="form-groupotp">
+                        <label for="otp">Mã OTP:</label>
+                        <input type="text" name="otp" id="otp" required placeholder="Nhập Mã OTP">
+                        <button type="submit" name="verify_otp" class="btn btn-success">Đăng nhập</button>
+                        <!-- Thêm nút gửi lại OTP -->
+                        <button type="submit" name="send_otp" class="btn btn-secondary">Gửi lại mã OTP</button>
+                    </div>
+                {% endif %}
+            
                 
-                <button type="submit" class="btn-submit">Đăng nhập</button>
             </form>
             
         </div>
     </div>
 </body>
 <style>
+    .captcha{
+        margin-top: 10px;
+    }
     :root{
         --bg: #fff;
         --nut: #0047a5;
@@ -82,6 +99,58 @@ h1 {
 
 .form-group {
     margin-bottom: 15px;
+    display: flex;
+    
+}
+
+.form-group input{
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dddfe2;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.form-groupotp input{
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dddfe2;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+}
+.form-groupotp button{
+    padding: 6px;
+    border-radius: 4px;
+    background-color: var(--nut);
+    color: #fff;
+    margin-bottom: 4px;
+}
+.btn-primary{
+    padding: 6px;
+    border-radius: 4px;
+    background-color: var(--nut);
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.form-groupotp button:hover{
+    background-color: var(--nuthover);
+}
+.form-groupotp button:active{
+    background-color: var(--nutactive);
+}
+.btn-primary:hover{
+    background-color: var(--nuthover);
+}
+.btn-primary:active{
+    background-color: var(--nutactive);
+}
+.form-group label{
+    min-width: 120px;
+    font-weight: bold;
 }
 
 .form-control {

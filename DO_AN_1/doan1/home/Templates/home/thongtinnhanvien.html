@@ -124,7 +124,7 @@
     <table>
         <thead>
             <tr>
-
+                 <th>Mã nhân viên</th>
                 <th>Họ tên</th>
                 <th>Ngày sinh</th>
                 <th>Số điện thoại</th>
@@ -139,6 +139,7 @@
 
             {% for nhanvien in nhan_vien_list %}
             <tr>
+                <td>{{ nhanvien.manv}}</td>
                 <td>{{ nhanvien.hoten }}</td>
                 <td>{{ nhanvien.ngaysinh|date:"Y-m-d" }}</td>
                 <td>{{ nhanvien.sdt }}</td> 
@@ -347,7 +348,6 @@
         <form action="" method="post">
             {% csrf_token %}
             <div class="chuanut">
-                {{ nv.manv }}
                 {{ nv.hoten }}
                 <p>Ngày sinh</p>
                 {{ nv.ngaysinh }}
