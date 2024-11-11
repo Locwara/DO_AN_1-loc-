@@ -77,20 +77,40 @@
         <form method="GET" action="{% url 'bangluong' %}">
             <div class="search-container">
                 <input type="text" name="search" id="search"  placeholder="Tìm kiếm từ khóa">
-                <select name="status" id="search-status">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="Đang làm">Đang làm việc</option>
-                    <option value="Nghỉ việc">Nghỉ việc</option>    
-                </select>
-                <input type="date" name="date" id="search-date">
+                <div class="chua2">
+                    <p>Lương cơ bản</p>
+                    <select name="status" id="search-status">
+                        <option value="10000-15000">10000-15000/h</option>
+                        <option value="15000-20000">15000-20000/h</option>
+                        <option value="20000-25000">20000-25000/h</option>
+                        <option value="25000-100000">25000-100000/h</option>
+                    </select>
+                </div>
+                <div class="chua2">
+                    <p>Tháng lương</p>
+                    <input type="date" name="date" id="search-date">
+                </div>
+                
                 <button type="submit">Tìm kiếm</button>
-                <button type="button" onclick="window.location.href='{% url 'thongtinnhanvien' %}'">Hiển thị tất cả</button>
+                <button type="button" onclick="window.location.href='{% url 'bangluong' %}'">Hiển thị tất cả</button>
             </div>
           
         </form>
        <button class="them" id="tcl">Thêm </button>
        <button class="in" id="import" >Import</button>
-       
+       <style>
+        .search-container{
+            display: flex;
+            width: 100vh;
+        }
+        .search-container #search{
+            height: 35px;
+        }
+        
+        .chua2{
+            margin-right: 8px;
+        }
+    </style>
     </div>
     <p class="tb">Vui lòng xóa và thêm lại nhân viên nếu muốn update số giờ!</p>
     <style>

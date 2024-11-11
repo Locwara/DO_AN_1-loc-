@@ -991,7 +991,7 @@ def Kho_nguyen_lieu(request):
     soluong = request.GET.get('soluong')
     if soluong:
         min_gia, max_gia = map(int, soluong.split('-'))
-        kho_nguyen_lieu_list = kho_nguyen_lieu_list.filter(gia__gte=min_gia, gia__lte=max_gia)
+        kho_nguyen_lieu_list = kho_nguyen_lieu_list.filter(soluong__gte=min_gia, soluong__lte=max_gia)
     if search:
         kho_nguyen_lieu_list = kho_nguyen_lieu_list.filter(
             Q(manl__icontains=search) |
@@ -1042,8 +1042,12 @@ def bang_luong(request):
     gia = request.GET.get('gia')
     thang = request.GET.get('thang')
     nam = request.GET.get('nam')
+    status = request.GET.get('status')
 
     # Lọc theo khoảng lương
+    if status:
+        min_gia, max_gia = map(int, status.split('-'))
+        bang_luong_list = bang_luong_list.filter(luongcoban__gte=min_gia, luongcoban__lte=max_gia)
     if gia:
         try:
             min_gia, max_gia = map(int, gia.split('-'))
