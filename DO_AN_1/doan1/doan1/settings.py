@@ -101,7 +101,7 @@ WSGI_APPLICATION = 'doan1.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'mysql.connector.django',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'qlnv',
         'USER': 'root',
         'PASSWORD': '',
