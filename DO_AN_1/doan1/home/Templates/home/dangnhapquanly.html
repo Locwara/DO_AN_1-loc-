@@ -30,21 +30,23 @@
                     <input type="password" name="password" id="password" value="{{ password|default:'' }}" required placeholder="Nhập mật khẩu">
                 </div>
             
-                {% if not show_otp %}
-                    <button type="submit" name="send_otp" class="btn btn-primary">Nhận mã OTP</button>
-                {% endif %}
+                {% if requires_otp %}
+                    {% if not show_otp %}
+                        <button type="submit" name="send_otp" class="btn btn-primary">Nhận mã OTP</button>
+                    {% endif %}
             
-                {% if show_otp %}
-                    <div class="form-groupotp">
-                        <label for="otp">Mã OTP:</label>
-                        <input type="text" name="otp" id="otp" required placeholder="Nhập Mã OTP">
-                        <button type="submit" name="verify_otp" class="btn btn-success">Đăng nhập</button>
-                        <!-- Thêm nút gửi lại OTP -->
-                        <button type="submit" name="send_otp" class="btn btn-secondary">Gửi lại mã OTP</button>
-                    </div>
+                    {% if show_otp %}
+                        <div class="form-groupotp">
+                            <label for="otp">Mã OTP:</label>
+                            <input type="text" name="otp" id="otp" required placeholder="Nhập Mã OTP">
+                            <button type="submit" name="verify_otp" class="btn btn-success">Đăng nhập</button>
+                            <!-- Thêm nút gửi lại OTP -->
+                            <button type="submit" name="send_otp" class="btn btn-secondary">Gửi lại mã OTP</button>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <button type="submit" name="login_without_otp" class="btn btn-primary">Đăng nhập</button>
                 {% endif %}
-            
-                
             </form>
             
         </div>

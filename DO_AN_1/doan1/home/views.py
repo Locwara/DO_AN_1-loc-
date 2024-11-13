@@ -15,6 +15,7 @@ from .decorators import admin_required
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
+import pytz
 from datetime import timedelta, datetime, date
 import random
 import string
@@ -593,16 +594,67 @@ def thong_ke_theo_quy(data):
 
 def register(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Đăng ký thành công!')
-            return redirect('login')
-        else:
-            for error in form.errors.values():
-                messages.error(request, error)
-    return render(request, 'home/dangky.html')
+        # Lưu dữ liệu form để điền lại khi refresh
+        form_data = {
+            'username': request.POST.get('username'),
+            'tentk': request.POST.get('tentk'),
+            'email': request.POST.get('email'),
+            'phone': request.POST.get('phone'),
+            'address': request.POST.get('address'),
+            'birth_date': request.POST.get('birth_date'),
+            'password1': request.POST.get('password1'),
+            'password2': request.POST.get('password2'),
+        }
+
+        if 'send_otp' in request.POST:
+            form = CustomUserCreationForm(request.POST)
+            if form.is_valid():
+                email = form.cleaned_data['email']
+                
+                # Tạo và lưu OTP vào cache
+                otp = generate_otp()
+                cache_key = f'register_otp_{email}'
+                cache.set(cache_key, {
+                    'otp': otp,
+                    'form_data': request.POST
+                }, 300)  # OTP hết hạn sau 5 phút
+                
+                try:
+                    send_otp_email(email, otp)
+                    messages.success(request, 'Mã OTP đã được gửi đến email của bạn!')
+                    return render(request, 'home/dangky.html', {
+                        'show_otp': True,
+                        'form_data': form_data
+                    })
+                except Exception as e:
+                    messages.error(request, 'Có lỗi khi gửi mã OTP!')
+            else:
+                for error in form.errors.values():
+                    messages.error(request, error)
+
+        elif 'verify_otp' in request.POST:
+            user_otp = request.POST.get('otp')
+            email = request.POST.get('email')
+            cache_key = f'register_otp_{email}'
+            cached_data = cache.get(cache_key)
+
+            if cached_data and cached_data['otp'] == user_otp:
+                # OTP đúng, tạo user mới
+                form = CustomUserCreationForm(cached_data['form_data'])
+                if form.is_valid():
+                    user = form.save()
+                    cache.delete(cache_key)  # Xóa OTP đã sử dụng
+                    login(request, user)
+                    messages.success(request, 'Đăng ký thành công!')
+                    return redirect('login')
+            else:
+                messages.error(request, 'Mã OTP không đúng hoặc đã hết hạn!')
+                return render(request, 'home/dangky.html', {
+                    'show_otp': True,
+                    'form_data': form_data
+                })
+
+    return render(request, 'home/dangky.html', {'show_otp': False})
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -612,75 +664,92 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('trangchu')
     
+    def check_first_login_of_day(username):
+        cache_key = f'last_login_{username}'
+        last_login = cache.get(cache_key)
+        
+        if last_login is None:
+            return True
+        
+        # Lấy ngày hiện tại ở múi giờ Việt Nam
+        tz = pytz.timezone('Asia/Ho_Chi_Minh')
+        now = datetime.now(tz)
+        last_login = last_login.astimezone(tz)
+        
+        # So sánh ngày
+        return now.date() != last_login.date()
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
         
-        if 'send_otp' in request.POST:
-            print(f"Attempting to send OTP for user: {username}")
-            user = authenticate(request, username=username, password=password)
+        if user is not None:
+            if user.is_staff or user.is_superuser:
+                messages.error(request, 'Bạn không có quyền đăng nhập vào trang nhân viên!')
+                return render(request, 'home/dangnhap.html')
             
-            if user is not None:
-                if (user.is_staff or user.is_superuser):
-                    messages.error(request, 'Bạn không có quyền đăng nhập vào trang nhân viên!')
-                    return render(request, 'home/dangnhap.html')
-                
+            requires_otp = check_first_login_of_day(username)
+            
+            if 'login_without_otp' in request.POST:
+                if not requires_otp:
+                    login(request, user)
+                    messages.success(request, 'Đăng nhập thành công!')
+                    return redirect('trangchu')
+                else:
+                    messages.error(request, 'Bạn cần xác thực OTP cho lần đăng nhập đầu tiên trong ngày!')
+            
+            elif 'send_otp' in request.POST and requires_otp:
                 # Tạo và gửi OTP
                 otp = generate_otp()
                 cache_key = f'otp_{username}'
                 cache.set(cache_key, otp, 300)  # OTP hết hạn sau 5 phút
                 
-                print(f"Generated OTP: {otp} for user: {username}")
-                print(f"Stored in cache with key: {cache_key}")
-                
                 try:
                     send_otp_email(user.email, otp)
-                    print(f"OTP sent successfully to: {user.email}")
+                    context = {
+                        'username': username,
+                        'password': password,
+                        'show_otp': True,
+                        'requires_otp': requires_otp,
+                        'message': 'Mã OTP đã được gửi đến email của bạn!'
+                    }
+                    messages.success(request, 'Mã OTP đã được gửi!')
+                    return render(request, 'home/dangnhap.html', context)
                 except Exception as e:
-                    print(f"Error sending email: {str(e)}")
                     messages.error(request, 'Có lỗi khi gửi mã OTP!')
                     return render(request, 'home/dangnhap.html')
                 
-                context = {
-                    'username': username,
-                    'password': password,
-                    'show_otp': True,
-                    'message': 'Mã OTP đã được gửi đến email của bạn!'
-                }
-                messages.success(request, 'Mã OTP đã được gửi!')
-                return render(request, 'home/dangnhap.html', context)
-            else:
-                messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
-                
-        elif 'verify_otp' in request.POST:
-            print(f"Verifying OTP for user: {username}")
-            user_otp = request.POST.get('otp')
-            print(f"Received OTP: {user_otp}")
-            
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
+            elif 'verify_otp' in request.POST and requires_otp:
+                user_otp = request.POST.get('otp')
                 cache_key = f'otp_{username}'
                 stored_otp = cache.get(cache_key)
-                print(f"Retrieved from cache - key: {cache_key}, stored OTP: {stored_otp}")
                 
                 if stored_otp and stored_otp.strip() == user_otp.strip():
                     login(request, user)
+                    # Lưu thời gian đăng nhập thành công
+                    tz = pytz.timezone('Asia/Ho_Chi_Minh')
+                    cache.set(f'last_login_{username}', datetime.now(tz), 60*60*24)  # Lưu trong 24 giờ
                     cache.delete(cache_key)
                     messages.success(request, 'Đăng nhập thành công!')
                     return redirect('trangchu')
                 else:
-                    print(f"OTP verification failed. Stored: {stored_otp}, Received: {user_otp}")
                     messages.error(request, 'Mã OTP không đúng hoặc đã hết hạn!')
                     context = {
                         'username': username,
                         'password': password,
-                        'show_otp': True
+                        'show_otp': True,
+                        'requires_otp': requires_otp
                     }
                     return render(request, 'home/dangnhap.html', context)
-            else:
-                messages.error(request, 'Thông tin đăng nhập không hợp lệ!')
-                
-    return render(request, 'home/dangnhap.html')
+        else:
+            messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
+    
+    # Kiểm tra xem có cần OTP hay không cho lần render đầu tiên
+    username = request.POST.get('username')
+    requires_otp = True if not username else check_first_login_of_day(username)
+    
+    return render(request, 'home/dangnhap.html', {'requires_otp': requires_otp})
 
 def generate_otp():
     otp = str(random.randint(100000, 999999))
@@ -703,75 +772,92 @@ def login_viewql(request):
     if request.user.is_authenticated:
         return redirect('trangchu')
     
+    def check_first_login_of_day(username):
+        cache_key = f'last_login_{username}'
+        last_login = cache.get(cache_key)
+        
+        if last_login is None:
+            return True
+        
+        # Lấy ngày hiện tại ở múi giờ Việt Nam
+        tz = pytz.timezone('Asia/Ho_Chi_Minh')
+        now = datetime.now(tz)
+        last_login = last_login.astimezone(tz)
+        
+        # So sánh ngày
+        return now.date() != last_login.date()
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
         
-        if 'send_otp' in request.POST:
-            print(f"Attempting to send OTP for user: {username}")
-            user = authenticate(request, username=username, password=password)
+        if user is not None:
+            if not  (user.is_staff or user.is_superuser):
+                messages.error(request, 'Bạn không có quyền đăng nhập vào trang quản lý!')
+                return render(request, 'home/dangnhapquanly.html')
             
-            if user is not None:
-                if not (user.is_staff or user.is_superuser):
-                    messages.error(request, 'Bạn không có quyền đăng nhập vào trang quản lý!')
-                    return render(request, 'home/dangnhapquanly.html')
-                
+            requires_otp = check_first_login_of_day(username)
+            
+            if 'login_without_otp' in request.POST:
+                if not requires_otp:
+                    login(request, user)
+                    messages.success(request, 'Đăng nhập thành công!')
+                    return redirect('trangchu')
+                else:
+                    messages.error(request, 'Bạn cần xác thực OTP cho lần đăng nhập đầu tiên trong ngày!')
+            
+            elif 'send_otp' in request.POST and requires_otp:
                 # Tạo và gửi OTP
                 otp = generate_otp()
                 cache_key = f'otp_{username}'
                 cache.set(cache_key, otp, 300)  # OTP hết hạn sau 5 phút
                 
-                print(f"Generated OTP: {otp} for user: {username}")
-                print(f"Stored in cache with key: {cache_key}")
-                
                 try:
                     send_otp_email(user.email, otp)
-                    print(f"OTP sent successfully to: {user.email}")
+                    context = {
+                        'username': username,
+                        'password': password,
+                        'show_otp': True,
+                        'requires_otp': requires_otp,
+                        'message': 'Mã OTP đã được gửi đến email của bạn!'
+                    }
+                    messages.success(request, 'Mã OTP đã được gửi!')
+                    return render(request, 'home/dangnhapquanly.html', context)
                 except Exception as e:
-                    print(f"Error sending email: {str(e)}")
                     messages.error(request, 'Có lỗi khi gửi mã OTP!')
                     return render(request, 'home/dangnhapquanly.html')
                 
-                context = {
-                    'username': username,
-                    'password': password,
-                    'show_otp': True,
-                    'message': 'Mã OTP đã được gửi đến email của bạn!'
-                }
-                messages.success(request, 'Mã OTP đã được gửi!')
-                return render(request, 'home/dangnhapquanly.html', context)
-            else:
-                messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
-                
-        elif 'verify_otp' in request.POST:
-            print(f"Verifying OTP for user: {username}")
-            user_otp = request.POST.get('otp')
-            print(f"Received OTP: {user_otp}")
-            
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
+            elif 'verify_otp' in request.POST and requires_otp:
+                user_otp = request.POST.get('otp')
                 cache_key = f'otp_{username}'
                 stored_otp = cache.get(cache_key)
-                print(f"Retrieved from cache - key: {cache_key}, stored OTP: {stored_otp}")
                 
                 if stored_otp and stored_otp.strip() == user_otp.strip():
                     login(request, user)
+                    # Lưu thời gian đăng nhập thành công
+                    tz = pytz.timezone('Asia/Ho_Chi_Minh')
+                    cache.set(f'last_login_{username}', datetime.now(tz), 60*60*24)  # Lưu trong 24 giờ
                     cache.delete(cache_key)
                     messages.success(request, 'Đăng nhập thành công!')
                     return redirect('trangchu')
                 else:
-                    print(f"OTP verification failed. Stored: {stored_otp}, Received: {user_otp}")
                     messages.error(request, 'Mã OTP không đúng hoặc đã hết hạn!')
                     context = {
                         'username': username,
                         'password': password,
-                        'show_otp': True
+                        'show_otp': True,
+                        'requires_otp': requires_otp
                     }
                     return render(request, 'home/dangnhapquanly.html', context)
-            else:
-                messages.error(request, 'Thông tin đăng nhập không hợp lệ!')
-                
-    return render(request, 'home/dangnhapquanly.html')
+        else:
+            messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
+    
+    # Kiểm tra xem có cần OTP hay không cho lần render đầu tiên
+    username = request.POST.get('username')
+    requires_otp = True if not username else check_first_login_of_day(username)
+    
+    return render(request, 'home/dangnhapquanly.html', {'requires_otp': requires_otp})
 
 def generate_otp():
     otp = str(random.randint(100000, 999999))
@@ -1467,7 +1553,14 @@ def Nguyen_lieu(request):
             Q(dvt__icontains=search) |
             Q(soluong__icontains=search)
         )
-    return render(request, 'home/thongtinnguyenlieu.html', {'nguyen_lieu_list': nguyen_lieu_list})
+    if request.method == "POST":
+        nl = nhap_nguyenlieu(request.POST)
+        if nl.is_valid():
+            nl.save()
+            return redirect('thongtinnguyenlieu.html')
+    else:
+        nl = nhap_nguyenlieu()
+    return render(request, 'home/thongtinnguyenlieu.html', {'nguyen_lieu_list': nguyen_lieu_list, 'nl':nl})
 
 def sua_thongtinnguyenlieu(request, manl):
     nguyenlieu = get_object_or_404(Thongtinnguyenlieu, manl=manl)

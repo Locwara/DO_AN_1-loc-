@@ -175,6 +175,7 @@
             <input type="text" name="tendc" id="tendc" required>
             <input type="number" name="soluong" id="soluong" required>
             <input type="text" name="dvt" id="dvt" required>
+            <p id="ngaymua1"> Ngày mua </p>
             <input type="date" name="ngaymua" id="ngaymua" required>
             <input type="number" name="giamua" id="giamua" required>
         </div>
@@ -183,6 +184,11 @@
         </div>
     </form>
     <style>
+        #ngaymua1 {
+            text-align: start !important;
+            width: 100%;
+            margin-left: 60px;
+        }
         #form_dungcu_sua h1 {
             text-align: center;
         }
@@ -342,6 +348,7 @@
             {{ dc.tendc }}
             {{ dc.soluong }}
             {{ dc.dvt }}
+            <p> Ngày mua </p>
             {{ dc.ngaymua }}
             {{ dc.giamua }}
         </div>
