@@ -18,10 +18,10 @@ from django.urls import path, include
 from home import views as home
 
 urlpatterns = [
-    path('captcha/', include('captcha.urls')),
     path('admin/', admin.site.urls),
     path('', home.get_index, name="index"),
     path('register/', home.register, name='register'),
+    path('lichsu/', home.lich_su_thao_tac, name = "lichsu"),
     path('login/', home.login_view, name="login"),
     path('loginql/', home.login_viewql, name="loginql"),
     path('change-password/', home.change_password, name='change_password'),

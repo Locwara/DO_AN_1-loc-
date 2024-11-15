@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import CaptchaForm, Calam, Nghiphep, Bangluong, Nhanvien, Thietbi, Baotri, Dungcu, Thongtinnguyenlieu
-from .forms import ChangePasswordForm ,ForgotPasswordForm ,nhap_nguyenlieu, nhap_khonguyenlieu, nhap_calam, nhap_baotri, nhap_dungcu, nhap_luongnhanvien, nhap_nghiphep, nhap_thietbi, nhap_nhanvien, nhap_thongtinnguyenlieu
+from .models import LichSuThaoTac, Calam, Nghiphep, Bangluong, Nhanvien, Thietbi, Baotri, Dungcu, Thongtinnguyenlieu
+from .forms import LoginForm, ChangePasswordForm ,ForgotPasswordForm ,nhap_nguyenlieu, nhap_khonguyenlieu, nhap_calam, nhap_baotri, nhap_dungcu, nhap_luongnhanvien, nhap_nghiphep, nhap_thietbi, nhap_nhanvien, nhap_thongtinnguyenlieu
 from django.http import HttpResponse
 from django.views.decorators.http import require_http_methods
 import pandas as pd
@@ -27,6 +27,11 @@ from django.core.cache import cache
 from io import BytesIO
 # Create your views here.
 from django.http import JsonResponse
+#lichsu
+@login_required 
+def lich_su_thao_tac(request):
+    lich_su_list = LichSuThaoTac.objects.all().order_by('-ngay_thuc_hien')
+    return render(request, 'home/lichsu.html', {'lich_su_list': lich_su_list})
 
 def thong_ke_view(request):
     # Xử lý dữ liệu và trả về JSON nếu là yêu cầu Ajax
@@ -671,86 +676,124 @@ def login_view(request):
         if last_login is None:
             return True
         
-        # Lấy ngày hiện tại ở múi giờ Việt Nam
         tz = pytz.timezone('Asia/Ho_Chi_Minh')
         now = datetime.now(tz)
         last_login = last_login.astimezone(tz)
         
-        # So sánh ngày
         return now.date() != last_login.date()
+    captcha_verified = False
+    captcha_time = request.session.get('captcha_verified_time')
+    
+    if captcha_time:
+        # Chuyển đổi thời gian từ string sang datetime
+        captcha_time = datetime.fromisoformat(captcha_time)
+        current_time = datetime.now()
+        # Kiểm tra xem đã quá 30 phút chưa
+        if (current_time - captcha_time).total_seconds() < 1800:  # 1800 giây = 30 phút
+            captcha_verified = request.session.get('captcha_verified', False)
+        else:
+            # Xóa session nếu đã hết hạn
+            if 'captcha_verified' in request.session:
+                del request.session['captcha_verified']
+            if 'captcha_verified_time' in request.session:
+                del request.session['captcha_verified_time']
+    form = LoginForm()
+    context = {
+        'form': form, 
+        'requires_otp': False,
+        'captcha_verified': request.session.get('captcha_verified', False)
+    }
 
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            if user.is_staff or user.is_superuser:
-                messages.error(request, 'Bạn không có quyền đăng nhập vào trang nhân viên!')
-                return render(request, 'home/dangnhap.html')
+        if 'verify_captcha' in request.POST:
+            form = LoginForm(request.POST)
+            if form.is_valid():
+                request.session['captcha_verified'] = True
+                context['captcha_verified'] = True
+                return render(request, 'home/dangnhap.html', context)
+            else:
+                messages.error(request, 'Vui lòng xác nhận bạn không phải robot!')
+                return render(request, 'home/dangnhap.html', context)
+
+        # Chỉ xử lý đăng nhập nếu đã xác minh captcha
+        if request.session.get('captcha_verified'):
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            user = authenticate(request, username=username, password=password)
             
-            requires_otp = check_first_login_of_day(username)
-            
-            if 'login_without_otp' in request.POST:
-                if not requires_otp:
-                    login(request, user)
-                    messages.success(request, 'Đăng nhập thành công!')
-                    return redirect('trangchu')
-                else:
-                    messages.error(request, 'Bạn cần xác thực OTP cho lần đăng nhập đầu tiên trong ngày!')
-            
-            elif 'send_otp' in request.POST and requires_otp:
-                # Tạo và gửi OTP
-                otp = generate_otp()
-                cache_key = f'otp_{username}'
-                cache.set(cache_key, otp, 300)  # OTP hết hạn sau 5 phút
-                
-                try:
-                    send_otp_email(user.email, otp)
-                    context = {
-                        'username': username,
-                        'password': password,
-                        'show_otp': True,
-                        'requires_otp': requires_otp,
-                        'message': 'Mã OTP đã được gửi đến email của bạn!'
-                    }
-                    messages.success(request, 'Mã OTP đã được gửi!')
+            if user is not None:
+                if user.is_staff or user.is_superuser:
+                    messages.error(request, 'Bạn không có quyền đăng nhập vào trang nhân viên!')
                     return render(request, 'home/dangnhap.html', context)
-                except Exception as e:
-                    messages.error(request, 'Có lỗi khi gửi mã OTP!')
-                    return render(request, 'home/dangnhap.html')
                 
-            elif 'verify_otp' in request.POST and requires_otp:
-                user_otp = request.POST.get('otp')
-                cache_key = f'otp_{username}'
-                stored_otp = cache.get(cache_key)
+                requires_otp = check_first_login_of_day(username)
+                context.update({
+                    'username': username,
+                    'password': password,
+                    'requires_otp': requires_otp,
+                })
                 
-                if stored_otp and stored_otp.strip() == user_otp.strip():
-                    login(request, user)
-                    # Lưu thời gian đăng nhập thành công
-                    tz = pytz.timezone('Asia/Ho_Chi_Minh')
-                    cache.set(f'last_login_{username}', datetime.now(tz), 60*60*24)  # Lưu trong 24 giờ
-                    cache.delete(cache_key)
-                    messages.success(request, 'Đăng nhập thành công!')
-                    return redirect('trangchu')
-                else:
-                    messages.error(request, 'Mã OTP không đúng hoặc đã hết hạn!')
-                    context = {
-                        'username': username,
-                        'password': password,
-                        'show_otp': True,
-                        'requires_otp': requires_otp
-                    }
-                    return render(request, 'home/dangnhap.html', context)
+                if 'login_without_otp' in request.POST:
+                    if not requires_otp:
+                        login(request, user)
+                        request.session.pop('captcha_verified', None)  # Xóa session khi đăng nhập thành công
+                        messages.success(request, 'Đăng nhập thành công!')
+                        return redirect('trangchu')
+                    else:
+                        messages.error(request, 'Bạn cần xác thực OTP cho lần đăng nhập đầu tiên trong ngày!')
+                
+                elif 'send_otp' in request.POST and requires_otp:
+                    otp = generate_otp()
+                    cache_key = f'otp_{username}'
+                    cache.set(cache_key, otp, 300)
+                    
+                    try:
+                        send_otp_email(user.email, otp)
+                        context.update({
+                            'show_otp': True,
+                            'message': 'Mã OTP đã được gửi đến email của bạn!'
+                        })
+                        messages.success(request, 'Mã OTP đã được gửi!')
+                        return render(request, 'home/dangnhap.html', context)
+                    except Exception as e:
+                        messages.error(request, 'Có lỗi khi gửi mã OTP!')
+                        return render(request, 'home/dangnhap.html', context)
+                    
+                elif 'verify_otp' in request.POST and requires_otp:
+                    user_otp = request.POST.get('otp')
+                    cache_key = f'otp_{username}'
+                    stored_otp = cache.get(cache_key)
+                    
+                    if stored_otp and stored_otp.strip() == user_otp.strip():
+                        login(request, user)
+                        tz = pytz.timezone('Asia/Ho_Chi_Minh')
+                        cache.set(f'last_login_{username}', datetime.now(tz), 60*60*24)
+                        cache.delete(cache_key)
+                        request.session.pop('captcha_verified', None)  # Xóa session khi đăng nhập thành công
+                        messages.success(request, 'Đăng nhập thành công!')
+                        return redirect('trangchu')
+                    else:
+                        messages.error(request, 'Mã OTP không đúng hoặc đã hết hạn!')
+                        context.update({'show_otp': True})
+                        return render(request, 'home/dangnhap.html', context)
+            else:
+                messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
         else:
-            messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
+            messages.error(request, 'Vui lòng xác minh captcha trước!')
     
     # Kiểm tra xem có cần OTP hay không cho lần render đầu tiên
     username = request.POST.get('username')
-    requires_otp = True if not username else check_first_login_of_day(username)
+    if username:
+        context['requires_otp'] = check_first_login_of_day(username)
     
-    return render(request, 'home/dangnhap.html', {'requires_otp': requires_otp})
-
+    return render(request, 'home/dangnhap.html', context)
+    
+    # Kiểm tra xem có cần OTP hay không cho lần render đầu tiên
+    username = request.POST.get('username')
+    if username:
+        context['requires_otp'] = check_first_login_of_day(username)
+    
+    return render(request, 'home/dangnhap.html', context)
 def generate_otp():
     otp = str(random.randint(100000, 999999))
     print(f"Generated new OTP: {otp}")
@@ -779,85 +822,120 @@ def login_viewql(request):
         if last_login is None:
             return True
         
-        # Lấy ngày hiện tại ở múi giờ Việt Nam
         tz = pytz.timezone('Asia/Ho_Chi_Minh')
         now = datetime.now(tz)
         last_login = last_login.astimezone(tz)
         
-        # So sánh ngày
         return now.date() != last_login.date()
+    
+    
+    
+    captcha_verified = False
+    captcha_time = request.session.get('captcha_verified_time')
+    
+    if captcha_time:
+        # Chuyển đổi thời gian từ string sang datetime
+        captcha_time = datetime.fromisoformat(captcha_time)
+        current_time = datetime.now()
+        # Kiểm tra xem đã quá 30 phút chưa
+        if (current_time - captcha_time).total_seconds() < 1800:  # 1800 giây = 30 phút
+            captcha_verified = request.session.get('captcha_verified', False)
+        else:
+            # Xóa session nếu đã hết hạn
+            if 'captcha_verified' in request.session:
+                del request.session['captcha_verified']
+            if 'captcha_verified_time' in request.session:
+                del request.session['captcha_verified_time']
+    form = LoginForm()
+    context = {
+        'form': form, 
+        'requires_otp': False,
+        'captcha_verified': request.session.get('captcha_verified', False)
+    }
 
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            if not  (user.is_staff or user.is_superuser):
-                messages.error(request, 'Bạn không có quyền đăng nhập vào trang quản lý!')
-                return render(request, 'home/dangnhapquanly.html')
+        if 'verify_captcha' in request.POST:
+            form = LoginForm(request.POST)
+            if form.is_valid():
+                request.session['captcha_verified'] = True
+                context['captcha_verified'] = True
+                return render(request, 'home/dangnhap.html', context)
+            else:
+                messages.error(request, 'Vui lòng xác nhận bạn không phải robot!')
+                return render(request, 'home/dangnhapquanly.html', context)
+
+        # Chỉ xử lý đăng nhập nếu đã xác minh captcha
+        if request.session.get('captcha_verified'):
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            user = authenticate(request, username=username, password=password)  
             
-            requires_otp = check_first_login_of_day(username)
-            
-            if 'login_without_otp' in request.POST:
-                if not requires_otp:
-                    login(request, user)
-                    messages.success(request, 'Đăng nhập thành công!')
-                    return redirect('trangchu')
-                else:
-                    messages.error(request, 'Bạn cần xác thực OTP cho lần đăng nhập đầu tiên trong ngày!')
-            
-            elif 'send_otp' in request.POST and requires_otp:
-                # Tạo và gửi OTP
-                otp = generate_otp()
-                cache_key = f'otp_{username}'
-                cache.set(cache_key, otp, 300)  # OTP hết hạn sau 5 phút
-                
-                try:
-                    send_otp_email(user.email, otp)
-                    context = {
-                        'username': username,
-                        'password': password,
-                        'show_otp': True,
-                        'requires_otp': requires_otp,
-                        'message': 'Mã OTP đã được gửi đến email của bạn!'
-                    }
-                    messages.success(request, 'Mã OTP đã được gửi!')
+            if user is not None:
+                if not (user.is_staff or user.is_superuser):
+                    messages.error(request, 'Bạn không có quyền đăng nhập vào trang quản lý!')
                     return render(request, 'home/dangnhapquanly.html', context)
-                except Exception as e:
-                    messages.error(request, 'Có lỗi khi gửi mã OTP!')
-                    return render(request, 'home/dangnhapquanly.html')
                 
-            elif 'verify_otp' in request.POST and requires_otp:
-                user_otp = request.POST.get('otp')
-                cache_key = f'otp_{username}'
-                stored_otp = cache.get(cache_key)
+                requires_otp = check_first_login_of_day(username)
+                context.update({
+                    'username': username,
+                    'password': password,
+                    'requires_otp': requires_otp,
+                })
                 
-                if stored_otp and stored_otp.strip() == user_otp.strip():
-                    login(request, user)
-                    # Lưu thời gian đăng nhập thành công
-                    tz = pytz.timezone('Asia/Ho_Chi_Minh')
-                    cache.set(f'last_login_{username}', datetime.now(tz), 60*60*24)  # Lưu trong 24 giờ
-                    cache.delete(cache_key)
-                    messages.success(request, 'Đăng nhập thành công!')
-                    return redirect('trangchu')
-                else:
-                    messages.error(request, 'Mã OTP không đúng hoặc đã hết hạn!')
-                    context = {
-                        'username': username,
-                        'password': password,
-                        'show_otp': True,
-                        'requires_otp': requires_otp
-                    }
-                    return render(request, 'home/dangnhapquanly.html', context)
+                if 'login_without_otp' in request.POST:
+                    if not requires_otp:
+                        login(request, user)
+                        request.session.pop('captcha_verified', None)  # Xóa session khi đăng nhập thành công
+                        messages.success(request, 'Đăng nhập thành công!')
+                        return redirect('trangchu')
+                    else:
+                        messages.error(request, 'Bạn cần xác thực OTP cho lần đăng nhập đầu tiên trong ngày!')
+                
+                elif 'send_otp' in request.POST and requires_otp:
+                    otp = generate_otp()
+                    cache_key = f'otp_{username}'
+                    cache.set(cache_key, otp, 300)
+                    
+                    try:
+                        send_otp_email(user.email, otp)
+                        context.update({
+                            'show_otp': True,
+                            'message': 'Mã OTP đã được gửi đến email của bạn!'
+                        })
+                        messages.success(request, 'Mã OTP đã được gửi!')
+                        return render(request, 'home/dangnhapquanly.html', context)
+                    except Exception as e:
+                        messages.error(request, 'Có lỗi khi gửi mã OTP!')
+                        return render(request, 'home/dangnhapquanly.html', context)
+                    
+                elif 'verify_otp' in request.POST and requires_otp:
+                    user_otp = request.POST.get('otp')
+                    cache_key = f'otp_{username}'
+                    stored_otp = cache.get(cache_key)
+                    
+                    if stored_otp and stored_otp.strip() == user_otp.strip():
+                        login(request, user)
+                        tz = pytz.timezone('Asia/Ho_Chi_Minh')
+                        cache.set(f'last_login_{username}', datetime.now(tz), 60*60*24)
+                        cache.delete(cache_key)
+                        request.session.pop('captcha_verified', None)  # Xóa session khi đăng nhập thành công
+                        messages.success(request, 'Đăng nhập thành công!')
+                        return redirect('trangchu')
+                    else:
+                        messages.error(request, 'Mã OTP không đúng hoặc đã hết hạn!')
+                        context.update({'show_otp': True})
+                        return render(request, 'home/dangnhapquanly.html', context)
+            else:
+                messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
         else:
-            messages.error(request, 'Tên đăng nhập hoặc mật khẩu không đúng!')
+            messages.error(request, 'Vui lòng xác minh captcha trước!')
     
     # Kiểm tra xem có cần OTP hay không cho lần render đầu tiên
     username = request.POST.get('username')
-    requires_otp = True if not username else check_first_login_of_day(username)
+    if username:
+        context['requires_otp'] = check_first_login_of_day(username)
     
-    return render(request, 'home/dangnhapquanly.html', {'requires_otp': requires_otp})
+    return render(request, 'home/dangnhapquanly.html', context)
 
 def generate_otp():
     otp = str(random.randint(100000, 999999))
@@ -964,6 +1042,11 @@ def Bao_tri(request):
         bt = nhap_baotri(request.POST)
         if bt.is_valid():
             bt.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Bảo trì: {bt.cleaned_data['mabt']}" 
+                )
             return redirect('baotri.html')
     else:
         bt = nhap_baotri()
@@ -979,6 +1062,11 @@ def sua_baotri(request, mabt):
         form = nhap_baotri(request.POST, instance=baotri)
         if form.is_valid():
             form.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='EDIT', 
+                noi_dung=f"Sửa Bảo trì: {baotri.mabt}" 
+                )
             messages.success(request, f'Đã cập nhật thành công bảo trì {mabt}')
             return redirect('baotri')
         else:
@@ -999,6 +1087,12 @@ def delete_dungcu(request, madc):
     try:
         dungcu = get_object_or_404(Dungcu, madc=madc)
         dungcu.delete()
+        LichSuThaoTac.objects.create( user=request.user, 
+        loai_thao_tac='DELETE', 
+        noi_dung=f"Xóa Bảo trì: {mabt}")    
+        LichSuThaoTac.objects.create( user=request.user, 
+        loai_thao_tac='DELETE', 
+        noi_dung=f"Xóa Dụng cụ: {madc}")
         messages.success(request, 'Xóa bản ghi dụng cụ thành công!')
     except Exception as e:
         messages.error(request, f'Xóa không thành công: {str(e)}')
@@ -1026,6 +1120,11 @@ def Dung_cu(request):
         dc = nhap_dungcu(request.POST)
         if dc.is_valid():
             dc.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Dụng cụ: {dc.cleaned_data['tendc']}" 
+                )
             return redirect('dungcu.html')
     else:
         dc = nhap_dungcu()
@@ -1064,6 +1163,11 @@ def sua_dungcu(request, madc):
         form = nhap_dungcu(request.POST, instance=dungcu)
         if form.is_valid():
             form.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='EDIT', 
+                noi_dung=f"Sửa Dụng cụ: {dungcu.tendc}" 
+                )
             messages.success(request, f'Đã cập nhật thành công dụng cụ {madc}')
             return redirect('dungcu')
         else:
@@ -1093,6 +1197,9 @@ def delete_khonguyenlieu(request, manl):
         khonguyenlieu = get_object_or_404(Thongtinnguyenlieu, manl=manl)
         khonguyenlieu.delete()
         messages.success(request, 'Xóa bản ghi kho nguyên liệu thành công!')
+        LichSuThaoTac.objects.create( user=request.user, 
+        loai_thao_tac='DELETE', 
+        noi_dung=f"Xóa Nguyên liệu: {tennl}")
     except Exception as e:
         messages.error(request, f'Xóa không thành công: {str(e)}')
     return redirect('khonguyenlieu')
@@ -1102,6 +1209,11 @@ def sua_khonguyenlieu(request, manl):
         form = nhap_khonguyenlieu(request.POST, instance=khonguyenlieu)
         if form.is_valid():
             form.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='EDIT', 
+                noi_dung=f"Sửa Nguyên liệu: {khonguyenlieu.tennl}" 
+                )
             messages.success(request, f'Đã cập nhật thành công kho nguyen lieu {manl}')
             return redirect('khonguyenlieu')
         else:
@@ -1211,7 +1323,13 @@ def bang_luong(request):
                     messages.success(
                         request, 
                         f"Đã thêm bảng lương thành công cho nhân viên {manv.hoten}"
+                        
                     )
+                    LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Lương: {bl.cleaned_data['maluong']}" 
+                )
                     return redirect('bangluong')
             except Exception as e:
                 messages.error(request, f"Lỗi khi lưu bảng lương: {str(e)}")
@@ -1235,11 +1353,17 @@ def bang_luong(request):
     return render(request, 'home/luongnhanvien.html', context)
 
 def delete_bangluong(request, maluong):
-    
+    try:
         bangluong = get_object_or_404(Bangluong, maluong=maluong)
         bangluong.delete()
         messages.success(request, 'Xóa bản ghi bảng lương thành công!')
-        return redirect('bangluong') 
+        LichSuThaoTac.objects.create( user=request.user, 
+        loai_thao_tac='DELETE', 
+        noi_dung=f"Xóa Lương: {maluong}")
+        messages.success(request, f'Xóa bảng lương thành công')
+    except Exception as e:
+        messages.error(request, f'Xóa không thành công: {str(e)}')
+    return redirect('bangluong') 
 
 def sua_bangluong(request, maluong):
     bangluong = get_object_or_404(Bangluong, maluong=maluong)
@@ -1248,6 +1372,11 @@ def sua_bangluong(request, maluong):
         if form.is_valid():
             form.save()
             messages.success(request, f'Đã cập nhật thành công lương {maluong}')
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='EDIT', 
+                noi_dung=f"Sửa Lương: {bangluong.maluong}" 
+                )
             return redirect('bangluong')
         else:
             messages.error(request, 'Có lỗi xảy ra khi cập nhật. Vui lòng kiểm tra lại thông tin.')
@@ -1337,6 +1466,11 @@ def nghi_phep(request):
         np = nhap_nghiphep(request.POST)
         if np.is_valid():
             np.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Nghỉ phép: {np.cleaned_data['manp']}" 
+                )
             return redirect('nghiphep.html')
     else:
         np = nhap_nghiphep()
@@ -1348,6 +1482,11 @@ def sua_nghiphep(request, manp):
         form = nhap_nghiphep(request.POST, instance=nghiphep)
         if form.is_valid():
             form.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='EDIT', 
+                noi_dung=f"Sửa Nghỉ phép: {nghiphep.manp}" 
+                )
             messages.success(request, f'Đã cập nhật thành công nghỉ phép {manp}')
             return redirect('nghiphep')
         else:
@@ -1358,6 +1497,9 @@ def delete_nghiphep(request, manp):
         manghiphep = get_object_or_404(Nghiphep, manp=manp)
         manghiphep.delete()
         messages.success(request, 'Xóa bản ghi nghỉ phép thành công!')
+        LichSuThaoTac.objects.create( user=request.user, 
+        loai_thao_tac='DELETE', 
+        noi_dung=f"Xóa nghỉ phép: {manp}")
     except Exception as e:
         messages.error(request, f'Xóa không thành công: {str(e)}')
     return redirect('nghiphep')
@@ -1420,6 +1562,11 @@ def sua_calam(request, macalam):
         form = nhap_calam(request.POST, instance=calam)
         if form.is_valid():
             form.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='EDIT', 
+                noi_dung=f"Sửa Ca làm: {calam.macalam}" 
+                )
             messages.success(request, f'Đã cập nhật thành công ca làm {macalam}')
             return redirect('socalam')
         else:
@@ -1444,6 +1591,11 @@ def so_ca_lam(request):
         form = nhap_calam(request.POST)
         if form.is_valid():
             form.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Ca làm: {form.cleaned_data['macalam']}" 
+                )
             return redirect('socalam')
     else:
         form = nhap_calam()
@@ -1455,6 +1607,9 @@ def delete_calam(request, macalam):
         macalam = get_object_or_404(Calam, macalam=macalam) 
         macalam.delete()
         messages.success(request, 'Xóa bản ghi ca làm thành công!')
+        LichSuThaoTac.objects.create( user=request.user, 
+        loai_thao_tac='DELETE', 
+        noi_dung=f"Xóa Ca làm: {macalam}")
     except Exception as e:
         messages.error(request, f'Xóa không thành công: {str(e)}')
     return redirect('socalam')
@@ -1483,6 +1638,11 @@ def thiet_bi(request):
         tb = nhap_thietbi(request.POST)
         if tb.is_valid():
             tb.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm thiết bị: {tb.cleaned_data['tentb']}" 
+                ) 
             return redirect('thietbi.html')
     else:
         tb = nhap_thietbi()    
@@ -1493,6 +1653,11 @@ def sua_thietbi(request, matb):
         form = nhap_thietbi(request.POST, instance=thietbi)
         if form.is_valid():
             form.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='EDIT', 
+                noi_dung=f"Sửa thiết bị: {thietbi.tentb}" 
+                )
             messages.success(request, f'Đã cập nhật thành công thiết bị {matb}')
             return redirect('thietbi')
         else:
@@ -1530,6 +1695,9 @@ def delete_thietbi(request, matb):
     try:
         mathietbi = get_object_or_404(Thietbi, matb=matb)
         mathietbi.delete()
+        LichSuThaoTac.objects.create( user=request.user, 
+        loai_thao_tac='DELETE', 
+        noi_dung=f"Xóa thiết bị: {matb}")
         messages.success(request, 'Xóa bản ghi thiết bị thành công!')
     except Exception as e:
         messages.error(request, f'Xóa không thành công: {str(e)}')
@@ -1557,6 +1725,11 @@ def Nguyen_lieu(request):
         nl = nhap_nguyenlieu(request.POST)
         if nl.is_valid():
             nl.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Nguyên liệu: {nl.cleaned_data['tennl']}" 
+                )
             return redirect('thongtinnguyenlieu.html')
     else:
         nl = nhap_nguyenlieu()
@@ -1568,8 +1741,14 @@ def sua_thongtinnguyenlieu(request, manl):
         form = nhap_nguyenlieu(request.POST, instance=nguyenlieu)
         if form.is_valid():
             form.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='EDIT', 
+                noi_dung=f"Sửa Nguyên liệu: {nguyenlieu.tennl}" 
+                )
             messages.success(request, f'Đã cập nhật thành công nguyên liệu {manl}')
             return redirect('thongtinnguyenlieu')
+        
         else:
             messages.error(request, f'Có lỗi xảy ra: {form.errors.as_json()}')  
     return redirect('thongtinnguyenlieu')
@@ -1612,6 +1791,9 @@ def delete_thongtinnhanvien(request, manv):
         ttnhanvien = get_object_or_404(Nhanvien, manv=manv)
         ttnhanvien.delete()
         messages.success(request, 'Xóa bản ghi thông tin nhân viên thành công!')
+        LichSuThaoTac.objects.create( user=request.user, 
+        loai_thao_tac='DELETE', 
+        noi_dung=f"Xóa Nhân viên: {tennl}")
     except Exception as e:
         messages.error(request, f'Xóa không thành công: {str(e)}')
     return redirect('thongtinnhanvien')
@@ -1644,6 +1826,11 @@ def nhan_vien(request):
         nv = nhap_nhanvien(request.POST)
         if nv.is_valid():
             nv.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Nhân viên: {nv.cleaned_data['hoten']}" 
+                )
             return redirect('thongtinnhanvien.html')
     else:
         nv = nhap_nhanvien()    
@@ -1656,6 +1843,11 @@ def sua_thongtinnhanvien(request, manv):
         form = nhap_nhanvien(request.POST, instance=nhanvien)
         if form.is_valid():
             form.save()
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='EDIT', 
+                noi_dung=f"Sửa Nhân viên: {nhanvien.hoten}" 
+                )
             messages.success(request, f'Đã cập nhật thành công nhân viên {manv}')
             return redirect('thongtinnhanvien')
         else:

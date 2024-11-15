@@ -22,30 +22,40 @@
             
             <form method="post">
                 {% csrf_token %}
-                <div class="form-group">
-                    <input type="text" name="username" id="username" value="{{ username|default:'' }}" required  placeholder="Nhập Tên đăng nhập">
-                </div>
+                <div class="form-content {% if not captcha_verified %}blur-content{% endif %}">
+                    <div class="form-group">
+                        <input type="text" name="username" id="username" value="{{ username|default:'' }}" required placeholder="Nhập Tên đăng nhập">
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="password" name="password" id="password" value="{{ password|default:'' }}" required placeholder="Nhập mật khẩu">
+                    </div>
+
+                    {% if requires_otp %}
+                        {% if not show_otp %}
+                            <button type="submit" name="send_otp" class="btn btn-primary">Nhận mã OTP</button>
+                        {% endif %}
                 
-                <div class="form-group">
-                    <input type="password" name="password" id="password" value="{{ password|default:'' }}" required placeholder="Nhập mật khẩu">
+                        {% if show_otp %}
+                            <div class="form-groupotp">
+                                <label for="otp">Mã OTP:</label>
+                                <input type="text" name="otp" id="otp" required placeholder="Nhập Mã OTP">
+                                <button type="submit" name="verify_otp" class="btn btn-success">Đăng nhập</button>
+                                <button type="submit" name="send_otp" class="btn btn-secondary">Gửi lại mã OTP</button>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <button type="submit" name="login_without_otp" class="btn btn-primary">Đăng nhập</button>
+                    {% endif %}
                 </div>
-            
-                {% if requires_otp %}
-                    {% if not show_otp %}
-                        <button type="submit" name="send_otp" class="btn btn-primary">Nhận mã OTP</button>
-                    {% endif %}
-            
-                    {% if show_otp %}
-                        <div class="form-groupotp">
-                            <label for="otp">Mã OTP:</label>
-                            <input type="text" name="otp" id="otp" required placeholder="Nhập Mã OTP">
-                            <button type="submit" name="verify_otp" class="btn btn-success">Đăng nhập</button>
-                            <!-- Thêm nút gửi lại OTP -->
-                            <button type="submit" name="send_otp" class="btn btn-secondary">Gửi lại mã OTP</button>
-                        </div>
-                    {% endif %}
-                {% else %}
-                    <button type="submit" name="login_without_otp" class="btn btn-primary">Đăng nhập</button>
+
+                {% if not captcha_verified %}
+                <div class="captcha-container">
+                    <div class="form-group captcha">
+                        {{ form.captcha }}
+                    </div>
+                    <button type="submit" name="verify_captcha" class="btn btn-primary">Xác minh</button>
+                </div>
                 {% endif %}
             </form>
             
@@ -53,8 +63,87 @@
     </div>
 </body>
 <style>
-    .captcha{
+       /* Existing styles remain unchanged */
+    
+    /* New styles for overlay and blur effect */
+    .has-overlay {
+        position: relative;
+    }
+
+    .blur-content {
+        filter: blur(3px);
+        pointer-events: none;
+        opacity: 0.6;
+        user-select: none;
+    }
+
+    .captcha-container {
+        position: relative;
+        z-index: 1000;
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: fit-content;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .captcha-container .btn {
         margin-top: 10px;
+    }
+
+    .form-content {
+        transition: all 0.3s ease;
+    }
+
+    /* Điều chỉnh style cho form captcha */
+    .form-group.captcha {
+        margin: 15px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .form-group.captcha > div {
+        display: inline-block;
+    }
+
+    /* Animation cho captcha container */
+    .captcha-container {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Thêm hiệu ứng hover cho nút xác minh */
+    .captcha-container .btn-primary {
+        transition: all 0.3s ease;
+    }
+
+    .captcha-container .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Điều chỉnh độ sáng cho captcha container */
+    .captcha-container {
+        background: white;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    .captcha {
+        margin: 15px 0;
+        display: flex;
+        justify-content: center;
     }
     :root{
         --bg: #fff;

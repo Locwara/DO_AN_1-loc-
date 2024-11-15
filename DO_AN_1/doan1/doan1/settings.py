@@ -57,11 +57,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'home',
     'captcha',
+    'django_recaptcha',
+    'home',
+    
 
 ]
-    
+RECAPTCHA_PUBLIC_KEY = '6LfjxH8qAAAAAEo_HLexUoQOne7q-qmVj7Cv37h5'  
+RECAPTCHA_PRIVATE_KEY = '6LfjxH8qAAAAAGCC3n6Ehyg_k4Ds3rVktq6X4pL1'
 LOGIN_URL = 'index'
 LOGIN_REDIRECT_URL = 'trangchu'
 LOGOUT_REDIRECT_URL = 'login'

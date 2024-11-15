@@ -1,12 +1,11 @@
-from captcha.fields import CaptchaField
+
 from django.db import models
 from django import forms
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, BaseUserManager, PermissionsMixin
 # Create your models here.,...
 
+from django.contrib.auth import get_user_model
 
-class CaptchaForm(forms.Form):
-    captcha = CaptchaField()
         
 
 class CustomUserManager(BaseUserManager):
@@ -158,3 +157,19 @@ class Thongtinnguyenlieu(models.Model):
     class Meta:
         db_table = 'nguyenlieu'
         
+
+
+class LichSuThaoTac(models.Model):
+    LOAI_THAO_TAC_CHOICES = [
+        ('ADD', 'Thêm'),
+        ('EDIT', 'Sửa'),
+        ('DELETE', 'Xóa'),
+    ]
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    loai_thao_tac = models.CharField(max_length=6, choices=LOAI_THAO_TAC_CHOICES)
+    noi_dung = models.TextField()
+    ngay_thuc_hien = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'lich_su_thao_tac'
