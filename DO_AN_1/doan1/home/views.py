@@ -282,6 +282,7 @@ def export_excel_nhansu(request):
         'border': 1
     })
 
+
 # Áp dụng định dạng cho header
     for col_num, value in enumerate(df_nghiphep.columns.values):
         worksheet.write(0, col_num, value, header_format)
@@ -1786,6 +1787,8 @@ def delete_thongtinnguyenlieu(request, manl):
         messages.error(request, f'Xóa không thành công: {str(e)}')
         return redirect('thongtinnguyenlieu')
 #thongtinnhanvien
+def display_gender(gender):
+    return "Nam" if gender else "Nữ"
 def delete_thongtinnhanvien(request, manv):
     try:
         ttnhanvien = get_object_or_404(Nhanvien, manv=manv)
@@ -1886,6 +1889,7 @@ def import_excel_thongtinnhanvien(request):
                 Nhanvien.objects.create(
                     hoten = row['Họ tên'].strip(),  # Thêm strip() để xóa khoảng trắng
                     ngaysinh = row['Ngày sinh'],
+                    gioitinh = row['Giới tính'],
                     sdt = str(row['Số điện thoại']).strip(),
                     diachi = row['Địa chỉ'],
                     ngayvaolam = row['Ngày vào làm'],

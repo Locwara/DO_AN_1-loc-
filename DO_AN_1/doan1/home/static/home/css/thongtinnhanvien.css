@@ -33,10 +33,10 @@ th{
     font-size: 15px;
 }
 thead{
-max-width: 130vh;
+max-width: 137vh;
 }
 tbody{
-max-width: 130vh;
+max-width: 137vh;
 }
  table {
     display: block;          
@@ -122,7 +122,7 @@ margin-right: 10px;
 
 /* table */
 table {
-    width: 130vh;
+    width: 140vh;
     border-collapse: collapse;
     background-color: #1174d6;
     color: var(--chu);

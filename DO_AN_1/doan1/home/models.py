@@ -100,9 +100,14 @@ class Bangluong(models.Model):
         super().save(*args, **kwargs)
 
 class Nhanvien(models.Model):
+    GENDER_CHOICES = [
+        (True, 'Nam'),
+        (False, 'Nữ'),
+    ]
     manv = models.AutoField(primary_key=True) 
     hoten = models.CharField(max_length=30)
     ngaysinh = models.DateField()
+    gioitinh = models.BooleanField(choices=GENDER_CHOICES, default=True)
     sdt = models.IntegerField()
     diachi = models.CharField(max_length=70)
     ngayvaolam = models.DateField()
@@ -111,7 +116,6 @@ class Nhanvien(models.Model):
 
     class Meta:
         db_table = 'nhanvien'
-        managed = False 
 
 
 

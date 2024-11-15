@@ -147,16 +147,18 @@ class nhap_thietbi(forms.ModelForm):
 class nhap_nhanvien(forms.ModelForm):
     class Meta:
         model = Nhanvien
-        fields = ['hoten', 'ngaysinh', 'sdt', 'diachi', 'ngayvaolam', 'vitricongviec', 'trangthai']
+        fields = ['hoten', 'ngaysinh', 'gioitinh',  'sdt', 'diachi', 'ngayvaolam', 'vitricongviec', 'trangthai']
         widgets = {
             'hoten': forms.TextInput(attrs={'placeholder': 'Họ tên', 'class': 'form-control'}),
             'ngaysinh': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'gioitinh': forms.Select(choices=Nhanvien.GENDER_CHOICES),
             'sdt': forms.TextInput(attrs={'placeholder': 'Số điện thoại', 'class': 'form-control'}),
             'diachi': forms.TextInput(attrs={'placeholder': 'Địa chỉ', 'class': 'form-control'}),
             'ngayvaolam': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'vitricongviec': forms.TextInput(attrs={'placeholder': 'Vị trí công việc', 'class': 'form-control'}),
             'trangthai': forms.TextInput(attrs={'placeholder': 'Trạng thái', 'class': 'form-control'}),
         }
+    
 class nhap_thongtinnguyenlieu(forms.ModelForm):
     class Meta:
         model = Thongtinnguyenlieu
@@ -168,7 +170,7 @@ class nhap_thongtinnguyenlieu(forms.ModelForm):
             'soluong': forms.TextInput(attrs={'placeholder': 'Số lượng'}),
             'ngayhethan': forms.DateInput(attrs={'type': 'date', 'placeholder': 'Ngày hết hạn'}),
         }
-        
+    
 class nhap_khonguyenlieu(forms.ModelForm):
     class Meta:
         model = Thongtinnguyenlieu
