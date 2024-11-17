@@ -6,8 +6,8 @@ from django_recaptcha.fields import ReCaptchaField  # Thay đổi import
 from django_recaptcha.widgets import ReCaptchaV2Checkbox  # Thay đổi import
 
 class LoginForm(forms.Form):
-    username = forms.CharField()
-    password = forms.CharField(widget=forms.PasswordInput)
+    username = forms.CharField(required=False)
+    password = forms.CharField(widget=forms.PasswordInput,required=False)
     captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox())
 class ChangePasswordForm(forms.Form):
     old_password = forms.CharField(

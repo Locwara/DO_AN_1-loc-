@@ -24,11 +24,11 @@
                 {% csrf_token %}
                 <div class="form-content {% if not captcha_verified %}blur-content{% endif %}">
                     <div class="form-group">
-                        <input type="text" name="username" id="username" value="{{ username|default:'' }}" required placeholder="Nhập Tên đăng nhập">
+                        <input type="text" name="username" id="username" value="{{ username|default:'' }}" placeholder="Nhập Tên đăng nhập">
                     </div>
                     
                     <div class="form-group">
-                        <input type="password" name="password" id="password" value="{{ password|default:'' }}" required placeholder="Nhập mật khẩu">
+                        <input type="password" name="password" id="password" value="{{ password|default:'' }}" placeholder="Nhập mật khẩu">
                     </div>
 
                     {% if requires_otp %}
