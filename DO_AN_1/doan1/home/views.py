@@ -995,7 +995,9 @@ def get_trangcanhan(request):
     return render(request, 'home/trangcanhan.html')
 #baotri
 def import_excel_baotri(request):
-    if request.method == "POST" and request.FILES['file']:
+    if request.method == "POST":
+        if 'file' not in request.FILES:
+            messages.error(request, 'Vui lòng chon file excel trước khi import')
         try:
             excel_f = request.FILES['file']
             df = pd.read_excel(excel_f)
@@ -1014,6 +1016,11 @@ def import_excel_baotri(request):
                     messages.error(request, f'Lỗi ở dòng {index + 2}: {str(e)}')
             if success_ip > 0:
                 messages.success(request, f'Import Thành công {success_ip} bản ghi')
+                LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Bảo trì excel" 
+                )
         except Exception as e:
             messages.error(request, f'Import thất bại: {str(e)}')
         return redirect('baotri')
@@ -1133,7 +1140,9 @@ def Dung_cu(request):
 
 
 def import_excel_dungcu(request):
-    if request.method == "POST" and request.FILES['file']:
+    if request.method == "POST":
+        if 'file' not in request.FILES:
+            messages.error(request, 'Vui lòng chon file excel trước khi import')
         try:
             excel_f = request.FILES['file']
             df = pd.read_excel(excel_f)
@@ -1153,6 +1162,11 @@ def import_excel_dungcu(request):
                     messages.error(request, f'Lỗi ở dòng {index + 2}: {str(e)}')
             if success_ip > 0:
                 messages.success(request, f'Import Thành công {success_ip} bản ghi')
+                LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Dụng cụ excel" 
+                )
         except Exception as e:
             messages.error(request, f'Import thất bại: {str(e)}')
         return redirect('dungcu')
@@ -1385,7 +1399,9 @@ def sua_bangluong(request, maluong):
 
 from django.db.models import Sum, F, ExpressionWrapper, DurationField
 def import_excel_bangluong(request):
-    if request.method == "POST" and request.FILES['file']:
+    if request.method == "POST":
+        if 'file' not in request.FILES:
+            messages.error(request, 'Vui lòng chon file excel trước khi import')
         try:
             excel_f = request.FILES['file']
             df = pd.read_excel(excel_f)
@@ -1434,6 +1450,11 @@ def import_excel_bangluong(request):
                     
             if success_ip > 0:
                 messages.success(request, f'Import thành công {success_ip} bản ghi')
+                LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Lương excel" 
+                )
         except Exception as e:
             messages.error(request, f'Import thất bại: {str(e)}')
         return redirect('bangluong')
@@ -1506,7 +1527,9 @@ def delete_nghiphep(request, manp):
     return redirect('nghiphep')
 
 def import_excel_nghiphep(request):
-    if request.method == "POST" and request.FILES['file']:
+    if request.method == "POST":
+        if 'file' not in request.FILES:
+            messages.error(request, 'Vui lòng chon file excel trước khi import')
         try:
             excel_f = request.FILES['file']
             df = pd.read_excel(excel_f)
@@ -1526,6 +1549,11 @@ def import_excel_nghiphep(request):
                     messages.error(request, f'Lỗi ở dòng {index + 2}: {str(e)}')
             if success_ip > 0:
                 messages.success(request, f'Import Thành công {success_ip} bản ghi')
+                LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Nghỉ phép excel" 
+                )
         except Exception as e:
             messages.error(request, f'Import thất bại: {str(e)}')
         return redirect('nghiphep')
@@ -1533,7 +1561,9 @@ def import_excel_nghiphep(request):
 #socalam
 
 def import_excel_calam(request):
-    if request.method == "POST" and request.FILES['file']:
+    if request.method == "POST":
+        if 'file' not in request.FILES:
+            messages.error(request, 'Vui lòng chon file excel trước khi import')
         try: 
             excel_f = request.FILES['file']
             df = pd.read_excel(excel_f)
@@ -1552,6 +1582,11 @@ def import_excel_calam(request):
                     messages.error(request, f'Lỗi ở dòng {index + 2}: {str(e)}')
             if success_count > 0:
                 messages.success(request, f'Import thành công {success_count} bản ghi')
+                LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Ca làm excel" 
+                )
         except Exception as e:
             messages.error(request, f'Import thất bại: {str(e)}')
     
@@ -1665,7 +1700,11 @@ def sua_thietbi(request, matb):
             messages.error(request, f'Có lỗi xảy ra: {form.errors.as_json()}')  
     return redirect('thietbi')
 def import_excel_thietbi(request):
-    if request.method == "POST" and request.FILES['file']:
+    if request.method == "POST":
+        if 'file' not in request.FILES:
+            messages.error(request, 'Vui lòng chọn file Excel trước khi import!')
+            return redirect('thietbi')
+            
         try:
             excel_f = request.FILES['file']
             df = pd.read_excel(excel_f)
@@ -1674,20 +1713,22 @@ def import_excel_thietbi(request):
                 try:
                     Thietbi.objects.create( 
                         tentb = row['Tên thiết bị'],
-                
                         loaitb = row['Loại thiết bị'],
                         soluong = row['Số lượng'],
                         tinhtrang = row['Tình trạng'],
                         ngaymua = row['Ngày mua'],
                         giamua = row['Giá mua']
-
-                       
                     )
                     success_ip += 1
                 except Exception as e:
                     messages.error(request, f'Lỗi ở dòng {index + 2}: {str(e)}')
             if success_ip > 0:
                 messages.success(request, f'Import Thành công {success_ip} bản ghi')
+                LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Thiết bị excel" 
+                )
         except Exception as e:
             messages.error(request, f'Import thất bại: {str(e)}')
         return redirect('thietbi')
@@ -1754,7 +1795,9 @@ def sua_thongtinnguyenlieu(request, manl):
             messages.error(request, f'Có lỗi xảy ra: {form.errors.as_json()}')  
     return redirect('thongtinnguyenlieu')
 def import_excel_thongtinnguyenlieu(request):
-    if request.method == "POST" and request.FILES['file']:
+    if request.method == "POST":
+        if 'file' not in request.FILES:
+            messages.error(request, 'Vui lòng chon file excel trước khi import')
         try:
             excel_f = request.FILES['file']
             df = pd.read_excel(excel_f)
@@ -1774,6 +1817,11 @@ def import_excel_thongtinnguyenlieu(request):
                     messages.error(request, f'Lỗi ở dòng {index + 2}: {str(e)}')
             if success_ip > 0:
                 messages.success(request, f'Import Thành công {success_ip} bản ghi')
+                LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Nguyên liệu excel" 
+                )
         except Exception as e:
             messages.error(request, f'Import thất bại: {str(e)}')
         return redirect('thongtinnguyenlieu')
@@ -1812,6 +1860,9 @@ def nhan_vien(request):
     date = request.GET.get('date')
     search = request.GET.get('search')
     vtcv = request.GET.get('vtcv')
+    gt = request.GET.get('gioitinh')
+    if gt:
+        nhan_vien_list = nhan_vien_list.filter(gioitinh = gt)
     if vtcv:
         nhan_vien_list = nhan_vien_list.filter(vitricongviec=vtcv)
     if status:
@@ -1906,6 +1957,11 @@ def import_excel_thongtinnhanvien(request):
                 
         if success_count > 0:
             messages.success(request, f'Import thành công {success_count} bản ghi')
+            LichSuThaoTac.objects.create( 
+                user=request.user, 
+                loai_thao_tac='ADD', 
+                noi_dung=f"Thêm Nhân viên excel" 
+                )
         
     except Exception as e:
         messages.error(request, f'Import thất bại: {str(e)}')

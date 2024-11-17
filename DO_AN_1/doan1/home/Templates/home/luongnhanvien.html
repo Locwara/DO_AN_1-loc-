@@ -2,16 +2,7 @@
 {% load static %}
 
 {% block content %}
-{% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-                <span class="close-btn">&times;</span>
-            </div>
-        {% endfor %}
-    </div>
-{% endif %}
+
 
 <style>
     :root{
@@ -35,36 +26,7 @@
     .item>li>#nvul{
         display: block;
     }
-    .messages {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-        min-width: 300px;
-    }
 
-    .alert {
-        padding: 15px;
-        margin-bottom: 10px;
-        border-radius: 4px;
-        color: white;
-        position: relative;
-    }
-
-    .alert-error {
-        background-color: #dc3545;
-    }
-
-    .alert-success {
-        background-color: #28a745;
-    }
-
-    .close-btn {
-        position: absolute;
-        right: 10px;
-        top: 10px;
-        cursor: pointer;
-    }
 </style>
 
 <link rel="stylesheet" href="{% static 'home/css/luongnhanvien.css' %}">
@@ -102,14 +64,17 @@
         .search-container{
             display: flex;
             width: 100vh;
+            gap: 4px;
         }
         .search-container #search{
             height: 35px;
         }
+       select, input{
+        padding: 4px;
+        border-radius: 4px;
+       }
         
-        .chua2{
-            margin-right: 8px;
-        }
+
     </style>
     </div>
     <p class="tb">Vui lòng xóa và thêm lại nhân viên nếu muốn update số giờ!</p>
@@ -240,7 +205,7 @@
         <button type="submit">Import</button>
     </form>
     <p>- Vui lòng chọn đúng định dạng file là .xlsx</p>
-    <p>- Các trường bắt buộc phải là: Mã nhân viên, Số giờ, Lương cơ bản, Tổng lương</p>
+    <p>- Các trường Cần có: Mã nhân viên(hiện có), Lương cơ bản</p>
 <style>
     <style>
         :root{

@@ -3,16 +3,7 @@
 {% load static %}
 
 {% block content %}
-{% if messages %}
-<div class="messages">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">
-        {{ message }}
-        <span class="close-btn">&times;</span>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+
 
 <style>
     :root{
@@ -36,36 +27,7 @@
     .item>li>#nvul{
         display: block;
     }
-    .messages {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-        min-width: 300px;
-    }
-
-    .alert {
-        padding: 15px;
-        margin-bottom: 10px;
-        border-radius: 4px;
-        color: white;
-        position: relative;
-    }
-
-    .alert-error {
-        background-color: #dc3545;
-    }
-
-    .alert-success {
-        background-color: #28a745;
-    }
-
-    .close-btn {
-        position: absolute;
-        right: 10px;
-        top: 10px;
-        cursor: pointer;
-    }
+    
 </style>
 <link rel="stylesheet" href="{% static 'home/css/thongtinnhanvien.css'%}">
 <link rel="stylesheet" href="{% static 'home/css/thongtinnhanvien_ntt.css'%}">
@@ -99,6 +61,14 @@
                     </select>
                 </div>
                 <div class="chua2">
+                    <label for="">Giới tính</label>
+                    <select name="gioitinh" id="search-vtcv">
+                        <option value="1">Nam</option>
+                        <option value="0">Nữ</option>
+                        
+                    </select>
+                </div>
+                <div class="chua2">
                     <label for="">Ngày vào làm</label>
                 <input type="date" name="date" id="search-date">
                 </div>
@@ -114,10 +84,16 @@
         .search-container{
             display: flex;
             width: 100vh;
+            gap: 4px;
         }
         .search-container #search{
             height: 35px;
         }
+       select, input{
+        padding: 4px;
+        border-radius: 4px;
+       }
+       
         
 
     </style>
@@ -475,18 +451,7 @@
 </style>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const alerts = document.querySelectorAll('.alert')
-        alerts.forEach(function (alert) {
-            setTimeout(function () {
-                alert.style.display = 'none'
-            }, 5000)
-        })
-        const dong = document.querySelectorAll('.close-btn')
-        dong.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                this.parentElement.style.display = 'none'
-            })
-        })
+        
         const nutSua = document.querySelectorAll('.sua');
         const popup = document.getElementById('form_nhanvien_sua');
         const closeBtn = document.querySelector('.dongsua');
