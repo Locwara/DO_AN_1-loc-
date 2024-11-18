@@ -34,7 +34,6 @@ def lich_su_thao_tac(request):
     return render(request, 'home/lichsu.html', {'lich_su_list': lich_su_list})
 
 def thong_ke_view(request):
-    # Xử lý dữ liệu và trả về JSON nếu là yêu cầu Ajax
     if request.is_ajax():
         data = {
             'thong_ke_ngay': thong_ke_ngay_data, 
@@ -43,7 +42,6 @@ def thong_ke_view(request):
             'thong_ke_nam': thong_ke_nam_data
         }
         return JsonResponse(data)
-    # Trả về trang HTML cho yêu cầu thông thường
     return render(request, 'trang_thong_ke.html', data)
 
 #xuat excel trang chu
@@ -51,7 +49,6 @@ def format_sheet(writer, sheet_name, df):
     """Helper function để format worksheet với xử lý ngày tháng"""
     worksheet = writer.sheets[sheet_name]
     
-    # Format cơ bản
     header_format = writer.book.add_format({
         'bold': True,
         'bg_color': '#4F81BD',
@@ -65,14 +62,13 @@ def format_sheet(writer, sheet_name, df):
         'align': 'left'
     })
     
-    # Format cho ngày tháng
     date_format = writer.book.add_format({
         'border': 1,
         'align': 'left',
-        'num_format': 'dd/mm/yyyy'  # Định dạng ngày tháng
+        'num_format': 'dd/mm/yyyy'  
     })
     
-    # Set column width và format headers
+
     for idx, col in enumerate(df.columns):
         series = df[col]
         max_len = max(
@@ -82,20 +78,16 @@ def format_sheet(writer, sheet_name, df):
         worksheet.set_column(idx, idx, max_len)
         worksheet.write(0, idx, col, header_format)
 
-    # Format cells với xử lý đặc biệt cho cột ngày
     for row in range(1, len(df) + 1):
         for col, column_name in enumerate(df.columns):
             value = df.iloc[row-1, col]
             
-            # Kiểm tra nếu là cột ngày và chuyển đổi từ số Excel sang datetime
+
             if column_name in ['Ngày bắt đầu', 'Ngày kết thúc', 'Ngày sinh', 'Ngày vào làm', 'Ngày mua', 'Ngày hết hạn']:
-                # Xử lý giá trị số ngày của Excel
                 if isinstance(value, (int, float)):
-                    # Chuyển đổi số Excel sang datetime
                     from datetime import datetime, timedelta
                     excel_epoch = datetime(1900, 1, 1)
                     try:
-                        # Trừ 2 vì Excel tính sai ngày trong khoảng 1900-1904
                         date_value = excel_epoch + timedelta(days=int(value - 2))
                         worksheet.write(row, col, date_value, date_format)
                         continue
@@ -110,7 +102,6 @@ def xuat_baocao_nhanvien(request):
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     
-    # 1. Sheet nhân viên đi làm
     nhanviens_dilam = Nhanvien.objects.filter(
         ngayvaolam__lte=hom_nay, 
         trangthai="đi làm"
@@ -127,7 +118,6 @@ def xuat_baocao_nhanvien(request):
         df_dilam.to_excel(writer, sheet_name='Nhân viên đi làm', index=False)
         format_sheet(writer, 'Nhân viên đi làm', df_dilam)
     
-    # 2. Sheet nhân viên nghỉ phép
     nhanviens_nghiphep = Nghiphep.objects.filter(
         ngaybd__lte=hom_nay, 
         ngaykt__gte=hom_nay
@@ -155,14 +145,10 @@ def xuat_baocao_nhanvien(request):
 
 def xuat_baocao_thietbi_nguyenlieu(request):
     hom_nay = date.today()
-    
-    # Tạo buffer để lưu file Excel
+
     output = BytesIO()
     
-    # Tạo ExcelWriter object với xlsxwriter engine
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    
-    # 1. Sheet thiết bị cần bảo trì
     thietbis = Thietbi.objects.exclude(tinhtrang="tốt").values(
         'matb', 'tentb', 'loaitb', 'soluong', 'tinhtrang', 
         'ngaymua', 'giamua'
@@ -174,8 +160,7 @@ def xuat_baocao_thietbi_nguyenlieu(request):
                              'Tình trạng', 'Ngày mua', 'Giá mua']
         df_thietbi.to_excel(writer, sheet_name='Thiết bị cần bảo trì', index=False)
         format_sheet(writer, 'Thiết bị cần bảo trì', df_thietbi)
-    
-    # 2. Sheet nguyên liệu sắp hết
+
     nguyenlieus_saphet = Thongtinnguyenlieu.objects.filter(
         soluong__lt=10
     ).values(
@@ -190,7 +175,6 @@ def xuat_baocao_thietbi_nguyenlieu(request):
         df_nlsaphet.to_excel(writer, sheet_name='Nguyên liệu sắp hết', index=False)
         format_sheet(writer, 'Nguyên liệu sắp hết', df_nlsaphet)
     
-    # 3. Sheet nguyên liệu sắp hết hạn
     nguyenlieus_hethan = Thongtinnguyenlieu.objects.filter(
         ngayhethan__lte=hom_nay + pd.Timedelta(days=7)
     ).values(
@@ -205,7 +189,6 @@ def xuat_baocao_thietbi_nguyenlieu(request):
         df_nlhethan.to_excel(writer, sheet_name='Nguyên liệu sắp hết hạn', index=False)
         format_sheet(writer, 'Nguyên liệu sắp hết hạn', df_nlhethan)
     
-    # Lưu file và trả về response
     writer.close()
     output.seek(0)
     
@@ -217,11 +200,9 @@ def xuat_baocao_thietbi_nguyenlieu(request):
     return response
 #xuatexcel
 def export_excel_nhansu(request):
-    # Tạo writer để ghi nhiều sheet vào một file Excel
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     
-    # 1. Sheet Nhân viên
     nhanvien_data = Nhanvien.objects.values(
         'hoten',
         'ngaysinh',
@@ -237,7 +218,6 @@ def export_excel_nhansu(request):
                               'Ngày vào làm', 'Vị trí công việc', 'Trạng thái']
     df_nhanvien.to_excel(writer, sheet_name='Nhân viên', index=False)
 
-   # Sheet Nghỉ phép
     nghiphep_data = Nghiphep.objects.annotate(
         ten_nhanvien=F('manv__hoten')
     ).values(
@@ -246,11 +226,10 @@ def export_excel_nhansu(request):
         'ngaykt', 
         'lydonghi',
         'trangthai'
-    ).order_by('ngaybd')  # Sắp xếp theo ngày bắt đầu
+    ).order_by('ngaybd') 
 
     df_nghiphep = pd.DataFrame(list(nghiphep_data))
     if not df_nghiphep.empty:
-        # Đổi tên cột trước khi xử lý dữ liệu
         df_nghiphep.rename(columns={
             'ten_nhanvien': 'Họ tên nhân viên',
             'ngaybd': 'Ngày bắt đầu',
@@ -259,21 +238,19 @@ def export_excel_nhansu(request):
             'trangthai': 'Trạng thái'
         }, inplace=True)
 
-        # Chỉ chuyển đổi định dạng cho các cột ngày tháng
         date_columns = ['Ngày bắt đầu', 'Ngày kết thúc']
         for col in date_columns:
             df_nghiphep[col] = pd.to_datetime(df_nghiphep[col]).dt.strftime('%d-%m-%Y')
 
     df_nghiphep.to_excel(writer, sheet_name='Nghỉ phép', index=False)
 
-    # Định dạng sheet
     worksheet = writer.sheets['Nghỉ phép']
-    worksheet.set_column('A:A', 20)  # Họ tên
-    worksheet.set_column('B:C', 15)  # Ngày tháng
-    worksheet.set_column('D:D', 25)  # Lý do nghỉ
-    worksheet.set_column('E:E', 15)  # Trạng thái
+    worksheet.set_column('A:A', 20)  
+    worksheet.set_column('B:C', 15)  
+    worksheet.set_column('D:D', 25)  
+    worksheet.set_column('E:E', 15)  
 
-    # Thêm định dạng cho header
+
     header_format = writer.book.add_format({
         'bold': True,
         'align': 'center',
@@ -283,11 +260,11 @@ def export_excel_nhansu(request):
     })
 
 
-# Áp dụng định dạng cho header
+
     for col_num, value in enumerate(df_nghiphep.columns.values):
         worksheet.write(0, col_num, value, header_format)
 
-    # 3. Sheet Lương
+
     luong_data = Bangluong.objects.annotate(
         ten_nhanvien=F('manv__hoten')
     ).values(
@@ -303,15 +280,15 @@ def export_excel_nhansu(request):
                            'Lương cơ bản','Tổng lương','Họ tên nhân viên']
     df_luong.to_excel(writer, sheet_name='Bảng lương', index=False)
 
-    # Format các sheet
+
     for sheet_name in writer.sheets:
         worksheet = writer.sheets[sheet_name]
         worksheet.set_column('A:Z', 18)
 
-    # Lưu file
+
     writer.close()
     
-    # Chuẩn bị response
+
     output.seek(0)
     filename = f'bao_cao_nhan_su_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     response = HttpResponse(
@@ -323,11 +300,11 @@ def export_excel_nhansu(request):
     return response
 
 def export_excel_thietbi(request):
-    # Tạo writer để ghi nhiều sheet vào một file Excel
+
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     
-    # 1. Sheet Thiết bị
+
     thietbi_data = Thietbi.objects.values(
         'tentb',
         'loaitb',
@@ -342,7 +319,7 @@ def export_excel_thietbi(request):
                              'Tình trạng', 'Ngày mua', 'Giá mua']
     df_thietbi.to_excel(writer, sheet_name='Thiết bị', index=False)
 
-    # 2. Sheet Bảo trì
+
     baotri_data = Baotri.objects.annotate(
         ten_thietbi=F('matb__tentb')
     ).values(
@@ -358,7 +335,6 @@ def export_excel_thietbi(request):
                             'Chi phí', 'Người thực hiện']
     df_baotri.to_excel(writer, sheet_name='Bảo trì', index=False)
 
-    # 3. Sheet Dụng cụ
     dungcu_data = Dungcu.objects.values(
         'tendc',
         'soluong',
@@ -372,7 +348,7 @@ def export_excel_thietbi(request):
                             'Ngày mua', 'Giá mua']
     df_dungcu.to_excel(writer, sheet_name='Dụng cụ', index=False)
 
-    # 4. Sheet Nguyên liệu
+
     nguyenlieu_data = Thongtinnguyenlieu.objects.values(
         'tennl',
         'dvt',
@@ -386,15 +362,14 @@ def export_excel_thietbi(request):
                                 'Giá', 'Ngày hết hạn']
     df_nguyenlieu.to_excel(writer, sheet_name='Nguyên liệu', index=False)
 
-    # Format các sheet
+
     for sheet_name in writer.sheets:
         worksheet = writer.sheets[sheet_name]
         worksheet.set_column('A:Z', 18)
 
-    # Lưu file
+
     writer.close()
     
-    # Chuẩn bị response
     output.seek(0)
     filename = f'bao_cao_thiet_bi_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
     response = HttpResponse(
@@ -412,13 +387,12 @@ def change_password(request):
             user = request.user
             old_password = form.cleaned_data['old_password']
             new_password = form.cleaned_data['new_password']
-            
-            # Kiểm tra mật khẩu cũ
+       
             if user.check_password(old_password):
                 user.set_password(new_password)
                 user.save()
                 messages.success(request, 'Đổi mật khẩu thành công!')
-                return redirect('index')  # Chuyển về trang đăng nhập
+                return redirect('index') 
             else:
                 messages.error(request, 'Mật khẩu cũ không đúng')
     else:
@@ -436,18 +410,17 @@ def forgot_password(request):
         form = ForgotPasswordForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            # Tìm user với email được cung cấp
             user = CustomUser.objects.filter(email=email).first()
             
             if user:
-                # Generate mật khẩu mới
+               
                 new_password = generate_password()
                 
-                # Cập nhật mật khẩu mới cho user
+      
                 user.set_password(new_password)
                 user.save()
                 
-                # Chuẩn bị nội dung email
+
                 subject = 'Mật khẩu mới cho tài khoản của bạn'
                 message = f"""Xin chào {user.username},
 
@@ -465,7 +438,7 @@ Trân trọng,
 Ban quản trị"""
 
                 try:
-                    # Gửi email
+
                     send_mail(
                         subject,
                         message,
@@ -481,7 +454,6 @@ Ban quản trị"""
                     return redirect('index')
                 
                 except Exception as e:
-                    # Nếu gửi email thất bại, hoàn tác việc đổi mật khẩu
                     user.set_password(new_password)
                     user.save()
                     messages.error(
@@ -502,7 +474,6 @@ Ban quản trị"""
 
 
 def thong_ke_nhan_vien(request):
-    # Thông tin nhân viên
     tong_so_nhan_vien = Nhanvien.objects.count()
     so_nhan_vien_phuc_vu = Nhanvien.objects.filter(vitricongviec="Nhân viên phục vụ").count()
     so_nhan_vien_pha_che = Nhanvien.objects.filter(vitricongviec="Nhân viên pha chế").count()
@@ -514,15 +485,15 @@ def thong_ke_nhan_vien(request):
     so_nhan_vien_nghi_hom_nay = Nghiphep.objects.filter(ngaybd__lte=today, ngaykt__gte=today).count()
     so_nhan_vien_dang_lam_viec = tong_so_nhan_vien - so_nhan_vien_nghi_hom_nay
 
-    # Nguyên liệu sắp hết hạn trong vòng 7 ngày
+
     het_han_trong_vong_7_ngay = today + timedelta(days=7)
     nguyen_lieu_sap_het_han = Thongtinnguyenlieu.objects.filter(ngayhethan__lte=het_han_trong_vong_7_ngay, ngayhethan__gte=today)
 
-    # Cảnh báo nguyên liệu dưới mức tồn kho tối thiểu
-    MUC_TON_KHO_TOI_THIEU = 10  # Giả sử mức tối thiểu là 10 đơn vị
+
+    MUC_TON_KHO_TOI_THIEU = 10  
     nguyen_lieu_duoi_ton_kho = Thongtinnguyenlieu.objects.filter(soluong__lt=MUC_TON_KHO_TOI_THIEU)
 
-    # Dữ liệu để thống kê theo ngày tháng năm
+
     data = Nghiphep.objects.values_list('ngaybd', flat=True)
     thong_ke_ngay = {}
     thong_ke_thang = {}
@@ -537,7 +508,6 @@ def thong_ke_nhan_vien(request):
     if 'quy' in request.GET.getlist('thong_ke'):
         thong_ke_quy = thong_ke_theo_quy(data)
 
-    # Truyền dữ liệu cho template
     context = {
         'tong_so_nhan_vien': tong_so_nhan_vien,
         'so_nhan_vien_phuc_vu': so_nhan_vien_phuc_vu,
@@ -559,7 +529,7 @@ def thong_ke_nhan_vien(request):
 def thong_ke_theo_ngay(data):
     thong_ke = {}
     for ngay in data:
-        ngay_str = ngay.strftime('%Y-%m-%d')  # Chuyển đổi ngày thành chuỗi định dạng năm-tháng-ngày
+        ngay_str = ngay.strftime('%Y-%m-%d')  
         if ngay_str not in thong_ke:
             thong_ke[ngay_str] = 0
         thong_ke[ngay_str] += 1
@@ -568,7 +538,7 @@ def thong_ke_theo_ngay(data):
 def thong_ke_theo_thang(data):
     thong_ke = {}
     for ngay in data:
-        thang = ngay.strftime('%Y-%m')  # Định dạng năm-tháng
+        thang = ngay.strftime('%Y-%m')  
         if thang not in thong_ke:
             thong_ke[thang] = 0
         thong_ke[thang] += 1
@@ -600,7 +570,7 @@ def thong_ke_theo_quy(data):
 
 def register(request):
     if request.method == 'POST':
-        # Lưu dữ liệu form để điền lại khi refresh
+
         form_data = {
             'username': request.POST.get('username'),
             'tentk': request.POST.get('tentk'),
@@ -617,13 +587,13 @@ def register(request):
             if form.is_valid():
                 email = form.cleaned_data['email']
                 
-                # Tạo và lưu OTP vào cache
+
                 otp = generate_otp()
                 cache_key = f'register_otp_{email}'
                 cache.set(cache_key, {
                     'otp': otp,
                     'form_data': request.POST
-                }, 300)  # OTP hết hạn sau 5 phút
+                }, 300)  
                 
                 try:
                     send_otp_email(email, otp)
@@ -645,11 +615,11 @@ def register(request):
             cached_data = cache.get(cache_key)
 
             if cached_data and cached_data['otp'] == user_otp:
-                # OTP đúng, tạo user mới
+               
                 form = CustomUserCreationForm(cached_data['form_data'])
                 if form.is_valid():
                     user = form.save()
-                    cache.delete(cache_key)  # Xóa OTP đã sử dụng
+                    cache.delete(cache_key)  
                     login(request, user)
                     messages.success(request, 'Đăng ký thành công!')
                     return redirect('login')
@@ -686,14 +656,11 @@ def login_view(request):
     captcha_time = request.session.get('captcha_verified_time')
     
     if captcha_time:
-        # Chuyển đổi thời gian từ string sang datetime
         captcha_time = datetime.fromisoformat(captcha_time)
         current_time = datetime.now()
-        # Kiểm tra xem đã quá 30 phút chưa
-        if (current_time - captcha_time).total_seconds() < 1800:  # 1800 giây = 30 phút
+        if (current_time - captcha_time).total_seconds() < 1800:  
             captcha_verified = request.session.get('captcha_verified', False)
         else:
-            # Xóa session nếu đã hết hạn
             if 'captcha_verified' in request.session:
                 del request.session['captcha_verified']
             if 'captcha_verified_time' in request.session:
@@ -716,7 +683,6 @@ def login_view(request):
                 messages.error(request, 'Vui lòng xác nhận bạn không phải robot!')
                 return render(request, 'home/dangnhap.html', context)
 
-        # Chỉ xử lý đăng nhập nếu đã xác minh captcha
         if request.session.get('captcha_verified'):
             username = request.POST.get('username')
             password = request.POST.get('password')
@@ -737,7 +703,7 @@ def login_view(request):
                 if 'login_without_otp' in request.POST:
                     if not requires_otp:
                         login(request, user)
-                        request.session.pop('captcha_verified', None)  # Xóa session khi đăng nhập thành công
+                        request.session.pop('captcha_verified', None) 
                         messages.success(request, 'Đăng nhập thành công!')
                         return redirect('trangchu')
                     else:
@@ -770,7 +736,7 @@ def login_view(request):
                         tz = pytz.timezone('Asia/Ho_Chi_Minh')
                         cache.set(f'last_login_{username}', datetime.now(tz), 60*60*24)
                         cache.delete(cache_key)
-                        request.session.pop('captcha_verified', None)  # Xóa session khi đăng nhập thành công
+                        request.session.pop('captcha_verified', None)  
                         messages.success(request, 'Đăng nhập thành công!')
                         return redirect('trangchu')
                     else:
@@ -782,14 +748,13 @@ def login_view(request):
         else:
             messages.error(request, 'Vui lòng xác minh captcha trước!')
     
-    # Kiểm tra xem có cần OTP hay không cho lần render đầu tiên
     username = request.POST.get('username')
     if username:
         context['requires_otp'] = check_first_login_of_day(username)
     
     return render(request, 'home/dangnhap.html', context)
     
-    # Kiểm tra xem có cần OTP hay không cho lần render đầu tiên
+
     username = request.POST.get('username')
     if username:
         context['requires_otp'] = check_first_login_of_day(username)
@@ -835,14 +800,14 @@ def login_viewql(request):
     captcha_time = request.session.get('captcha_verified_time')
     
     if captcha_time:
-        # Chuyển đổi thời gian từ string sang datetime
+
         captcha_time = datetime.fromisoformat(captcha_time)
         current_time = datetime.now()
-        # Kiểm tra xem đã quá 30 phút chưa
-        if (current_time - captcha_time).total_seconds() < 1800:  # 1800 giây = 30 phút
+
+        if (current_time - captcha_time).total_seconds() < 1800:  
             captcha_verified = request.session.get('captcha_verified', False)
         else:
-            # Xóa session nếu đã hết hạn
+
             if 'captcha_verified' in request.session:
                 del request.session['captcha_verified']
             if 'captcha_verified_time' in request.session:
@@ -865,7 +830,6 @@ def login_viewql(request):
                 messages.error(request, 'Vui lòng xác nhận bạn không phải robot!')
                 return render(request, 'home/dangnhapquanly.html', context)
 
-        # Chỉ xử lý đăng nhập nếu đã xác minh captcha
         if request.session.get('captcha_verified'):
             username = request.POST.get('username')
             password = request.POST.get('password')
@@ -886,7 +850,7 @@ def login_viewql(request):
                 if 'login_without_otp' in request.POST:
                     if not requires_otp:
                         login(request, user)
-                        request.session.pop('captcha_verified', None)  # Xóa session khi đăng nhập thành công
+                        request.session.pop('captcha_verified', None)  
                         messages.success(request, 'Đăng nhập thành công!')
                         return redirect('trangchu')
                     else:
@@ -919,7 +883,7 @@ def login_viewql(request):
                         tz = pytz.timezone('Asia/Ho_Chi_Minh')
                         cache.set(f'last_login_{username}', datetime.now(tz), 60*60*24)
                         cache.delete(cache_key)
-                        request.session.pop('captcha_verified', None)  # Xóa session khi đăng nhập thành công
+                        request.session.pop('captcha_verified', None)  
                         messages.success(request, 'Đăng nhập thành công!')
                         return redirect('trangchu')
                     else:
@@ -931,7 +895,7 @@ def login_viewql(request):
         else:
             messages.error(request, 'Vui lòng xác minh captcha trước!')
     
-    # Kiểm tra xem có cần OTP hay không cho lần render đầu tiên
+
     username = request.POST.get('username')
     if username:
         context['requires_otp'] = check_first_login_of_day(username)
@@ -1240,7 +1204,7 @@ def sua_khonguyenlieu(request, manl):
 #luongnhanvien
 @admin_required
 def bang_luong(request):
-    # Lấy danh sách bảng lương với thông tin nhân viên
+ 
     bang_luong_list = (Bangluong.objects
         .select_related('manv')
         .annotate(
@@ -1248,16 +1212,16 @@ def bang_luong(request):
             thang=F('thangluong__month'),
             nam=F('thangluong__year')
         )
-        .order_by('-thangluong', 'manv__hoten'))  # Sắp xếp theo tháng mới nhất và tên nhân viên
+        .order_by('-thangluong', 'manv__hoten'))  
 
-    # Xử lý tìm kiếm và lọc
+
     search = request.GET.get('search', '').strip()
     gia = request.GET.get('gia')
     thang = request.GET.get('thang')
     nam = request.GET.get('nam')
     status = request.GET.get('status')
 
-    # Lọc theo khoảng lương
+
     if status:
         min_gia, max_gia = map(int, status.split('-'))
         bang_luong_list = bang_luong_list.filter(luongcoban__gte=min_gia, luongcoban__lte=max_gia)
@@ -1271,7 +1235,7 @@ def bang_luong(request):
         except ValueError:
             messages.error(request, "Định dạng khoảng lương không hợp lệ")
 
-    # Lọc theo tháng năm nếu có
+
     if thang and nam:
         try:
             bang_luong_list = bang_luong_list.filter(
@@ -1281,17 +1245,17 @@ def bang_luong(request):
         except ValueError:
             messages.error(request, "Tháng năm không hợp lệ")
 
-    # Tìm kiếm theo nhiều tiêu chí
+
     if search:
         bang_luong_list = bang_luong_list.filter(
             Q(maluong__icontains=search) |
-            Q(manv__hoten__icontains=search) |  # Tìm theo tên nhân viên
-            Q(manv__manv__icontains=search) |   # Tìm theo mã nhân viên
+            Q(manv__hoten__icontains=search) |  
+            Q(manv__manv__icontains=search) |   
             Q(sogio__icontains=search) |
             Q(luongcoban__icontains=search)
         )
 
-    # Xử lý thêm mới bảng lương
+
     if request.method == "POST":
         bl = nhap_luongnhanvien(request.POST)
         if bl.is_valid():
@@ -1299,7 +1263,7 @@ def bang_luong(request):
                 thangluong = bl.cleaned_data['thangluong']
                 manv = bl.cleaned_data['manv']
                 
-                # Kiểm tra bảng lương đã tồn tại
+
                 existing_luong = Bangluong.objects.filter(
                     manv=manv,
                     thangluong__month=thangluong.month,
@@ -1312,7 +1276,7 @@ def bang_luong(request):
                         f"Đã tồn tại bảng lương của nhân viên {manv.hoten} trong tháng {thangluong.month}/{thangluong.year}"
                     )
                 else:
-                    # Tính tổng số giờ làm từ bảng ca làm
+
                     calam_trong_thang = Calam.objects.filter(
                         manv=manv,
                         ngay__month=thangluong.month,
@@ -1321,18 +1285,17 @@ def bang_luong(request):
                     
                     tong_gio = 0
                     for ca in calam_trong_thang:
-                        # Chuyển giờ bắt đầu và kết thúc thành datetime để tính toán
+
                         giobd = datetime.combine(ca.ngay, ca.giobd)
                         giokt = datetime.combine(ca.ngay, ca.giokt)
-                        # Tính số giờ làm trong ca (kết quả là số giờ dạng float)
+ 
                         so_gio_lam = (giokt - giobd).total_seconds() / 3600
                         tong_gio += so_gio_lam
                     
-                    # Tạo instance của Bangluong nhưng chưa lưu
+
                     bangluong = bl.save(commit=False)
-                    # Gán số giờ đã tính được
-                    bangluong.sogio = round(tong_gio, 2)  # Làm tròn 2 chữ số thập phân
-                    # Lưu vào database
+                    bangluong.sogio = round(tong_gio, 2)  
+
                     bangluong.save()
                     
                     messages.success(
@@ -1351,7 +1314,7 @@ def bang_luong(request):
     else:
         bl = nhap_luongnhanvien()
 
-    # Chuẩn bị context cho template
+
     context = {
         'bang_luong_list': bang_luong_list,
         'bl': bl,
@@ -1360,7 +1323,6 @@ def bang_luong(request):
         'gia': gia,
         'thang': thang,
         'nam': nam,
-        # Thêm danh sách tháng và năm cho bộ lọc
         'months': range(1, 13),
         'years': range(datetime.now().year - 2, datetime.now().year + 1),
     }
@@ -1413,12 +1375,8 @@ def import_excel_bangluong(request):
                     nhanvien = Nhanvien.objects.get(manv=manv_id)
                     thang_luong = row['Tháng lương']
 
-                    # Tạo mã lương dựa trên mã nhân viên và tháng lương
                     maluong = f"{manv_id}_{thang_luong.strftime('%Y%m')}"
-
-                    # Kiểm tra xem mã lương này đã tồn tại chưa
                     if not Bangluong.objects.filter(maluong=maluong).exists():
-                        # Tính tổng số giờ làm việc của nhân viên trong tháng từ bảng Calam
                         sogio = Calam.objects.filter(
                             manv=nhanvien, 
                             ngay__year=thang_luong.year, 
@@ -1429,10 +1387,8 @@ def import_excel_bangluong(request):
                             )
                         ).aggregate(tong_gio=Sum('so_gio_lam'))['tong_gio']
 
-                        # Đổi `sogio` từ `timedelta` sang số giờ (float)
                         sogio = sogio.total_seconds() / 3600 if sogio else 0.0
 
-                        # Tạo bản ghi Bangluong với mã lương
                         Bangluong.objects.create(
                             maluong=maluong,
                             manv=nhanvien,
@@ -1918,14 +1874,12 @@ def import_excel_thongtinnhanvien(request):
         
     try:
         excel_file = request.FILES['file']
-        # Kiểm tra file có phải Excel không
         if not excel_file.name.endswith(('.xls', '.xlsx')):
             messages.error(request, 'Vui lòng upload file Excel (.xls, .xlsx)')
             return redirect('thongtinnhanvien')
             
         df = pd.read_excel(excel_file)
         
-        # Kiểm tra các cột bắt buộc
         required_columns = ['Họ tên', 'Ngày sinh', 'Số điện thoại', 'Địa chỉ', 'Ngày vào làm', 'Vị trí công việc', 'Trạng thái']
         missing_cols = [col for col in required_columns if col not in df.columns]
         if missing_cols:
@@ -1938,7 +1892,7 @@ def import_excel_thongtinnhanvien(request):
         for index, row in df.iterrows():
             try:
                 Nhanvien.objects.create(
-                    hoten = row['Họ tên'].strip(),  # Thêm strip() để xóa khoảng trắng
+                    hoten = row['Họ tên'].strip(),  
                     ngaysinh = row['Ngày sinh'],
                     gioitinh = row['Giới tính'],
                     sdt = str(row['Số điện thoại']).strip(),

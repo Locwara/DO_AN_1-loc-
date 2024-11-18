@@ -134,4 +134,12 @@ function openEmployeeMenuknl() {
     }
   });   
 
-  
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.createElement('div');
+    overlay.classList.add('sidebar-overlay');
+    
+    sidebar.classList.toggle('show');
+    
+    
+}

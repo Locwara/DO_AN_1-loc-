@@ -118,8 +118,6 @@ margin-right: 10px;
 } 
 
 
-
-/* table */
 table {
     width: 130vh;
     border-collapse: collapse;
@@ -129,7 +127,7 @@ table {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Header styles */
+
 thead tr {
     background-color: #3794f1;  
     border: 1px solid #000;
@@ -138,11 +136,11 @@ thead tr {
 th {
     padding: 8px;
     text-align: left;
-    border: 1px solid #000;  /* Viền nhạt hơn một chút */
+    border: 1px solid #000;  
     font-weight: normal;
 }
 
-/* Body styles */
+
 td {
     padding: 4px;
     border: 1px solid #000;
@@ -151,24 +149,23 @@ tbody{
     border: 1px solid #000;
 }
 
-/* Alternating row colors */
+
 tbody tr:nth-child(odd) {
-    background-color: var(--tdnhat);  /* Màu cơ bản */
+    background-color: var(--tdnhat);  
 }
 
 tbody tr:nth-child(even) {
-    background-color: var(--tddam);  /* Màu hơi đậm hơn cho hàng chẵn */
+    background-color: var(--tddam);  
 }
 
-/* Hover effect cho hàng */
+
 tbody tr:hover {
     background-color: #edf2f8;
 }
 
-/* Button styles */
 
 .sua, .nut-xoa {
-    background-color: var(--nut);  /* Màu nhạt hơn cho nút */
+    background-color: var(--nut);
     color: white;
     border: none;   
     padding: 6px 8px;
@@ -186,7 +183,6 @@ tbody tr:hover {
 }
 
 
-/* Empty state */
 tbody tr td[colspan="6"] {
     text-align: center;
     padding: 20px;

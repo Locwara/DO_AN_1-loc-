@@ -21,38 +21,7 @@
         {% endfor %}
     </div>
 {% endif %}
-<style>
-    .messages {
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        z-index: 1000;
-        min-width: 300px;
-    }
 
-    .alert {
-        padding: 15px;
-        margin-bottom: 10px;
-        border-radius: 4px;
-        color: white;
-        position: relative;
-    }
-
-    .alert-error {
-        background-color: #dc3545;
-    }
-
-    .alert-success {
-        background-color: #28a745;
-    }
-
-    .close-btn {
-        position: absolute;
-        right: 10px;
-        top: 10px;
-        cursor: pointer;
-    }
-</style>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
     const alerts = document.querySelectorAll('.alert')
@@ -77,6 +46,9 @@
             <div id="header">
                 <div id="nav1-2">
                     <div id="nav1">
+                        <button id="sidebar-toggle" onclick="toggleSidebar()">
+                            <i class="bi bi-list"></i>
+                        </button>
                         <i class="bi bi-house-door-fill" " onclick="navigateTo('/trangchu.html')"></i>
                         <a href="#" onclick="navigateTo('/trangchu.html')" class="ten">Trang chủ</a>
                     </div>
@@ -132,7 +104,6 @@
                         bottom: 0;
                         background-color: rgba(0, 0, 0, 0.5);
                         z-index: 998;
-                        /* Giảm z-index của overlay xuống */
                         display: none;
                     }
 
@@ -262,7 +233,9 @@
                 color: #000;
             }
         </style>
+        
         <div id="sidebar">
+            
             {% if user.is_superuser %}
             <div class="chuanv side-items">
                 <ul class="item nv">
@@ -397,7 +370,7 @@
                     
                 </div>
                 <div class="container1 mx-auto px-4 py-8">
-                    <!-- Thống kê tổng quan nhân viên -->
+      
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                         <div class="bg-white rounded-lg shadow p-6">
                             <h3 class="text-lg font-semibold mb-2">Tổng số nhân viên</h3>
@@ -430,7 +403,7 @@
                             </div>
                         </div>
                 
-                        <!-- Cảnh báo nguyên liệu sắp hết hạn -->
+                    
                         <div class="bg-white rounded-lg shadow p-6">
                             <h3 class="text-lg font-semibold mb-2">Nguyên liệu sắp hết hạn</h3>
                             <p class="text-3xl font-bold text-yellow-600">{{ nguyen_lieu_sap_het_han.count }}</p>
@@ -443,7 +416,7 @@
                             </div>
                         </div>
                 
-                        <!-- Cảnh báo tồn kho -->
+               
                         <div class="bg-white rounded-lg shadow p-6">
                             <h3 class="text-lg font-semibold mb-2">Nguyên liệu dưới tồn kho</h3>
                             <p class="text-3xl font-bold text-red-600">{{ nguyen_lieu_duoi_ton_kho.count }}</p>
@@ -456,13 +429,12 @@
                             </div>
                         </div>
                     </div>
-                
-                    <!-- Biểu đồ thống kê -->
+             
                     <div class="thong-ke-container bg-white rounded-lg shadow p-6 mb-8">
                         <div class="mb-6">
                             <h2 class="text-xl font-bold mb-4">Thống kê nghỉ phép</h2>
                             
-                            <!-- Filter form -->
+                   
                             <form method="get" class="mb-4 flex gap-4">
                                 <div class="space-x-4">
                                     <label class="inline-flex items-center">
@@ -492,7 +464,7 @@
                             </form>
                         </div>
                     
-                        <!-- Charts container -->
+                   
                         <div class="charts-grid">
                             {% if thong_ke_ngay %}
                             <div class="chart-container">
@@ -565,7 +537,7 @@
             };
             chart.setOption(option);
     
-            // Responsive
+     
             window.addEventListener('resize', function() {
                 chart.resize();
             });
@@ -611,19 +583,19 @@
                     <script>
                         const ctx = document.getElementById('workLeaveChart').getContext('2d');
                         const workLeaveChart = new Chart(ctx, {
-                            type: 'bar',  // Biểu đồ cột
+                            type: 'bar', 
                             data: {
-                                labels: ['Đang làm việc', 'Nghỉ phép'],  // Nhãn cho từng cột
+                                labels: ['Đang làm việc', 'Nghỉ phép'],  
                                 datasets: [{
                                     label: 'Số lượng nhân viên',
-                                    data: [{{ so_nhan_vien_dang_lam_viec }}, {{ so_nhan_vien_nghi_hom_nay }}],  // Số liệu từ views
+                                    data: [{{ so_nhan_vien_dang_lam_viec }}, {{ so_nhan_vien_nghi_hom_nay }}],  
                             backgroundColor: [
-                                'rgb(75, 192, 192)', // Màu cho cột "Đang làm việc"
-                                'rgb(255, 99, 132)'  // Màu cho cột "Nghỉ phép"
+                                'rgb(75, 192, 192)', 
+                                'rgb(255, 99, 132)'  
                             ],
                             borderColor: [
-                                'rgba(75, 192, 192, 1)',  // Viền cho cột "Đang làm việc"
-                                'rgba(255, 99, 132, 1)'   // Viền cho cột "Nghỉ phép"
+                                'rgba(75, 192, 192, 1)',  
+                                'rgba(255, 99, 132, 1)'   
                             ],
                             borderWidth: 1
                         }]
@@ -631,12 +603,12 @@
                         options: {
                             scales: {
                                 y: {
-                                    beginAtZero: true  // Bắt đầu từ 0 trên trục Y
+                                    beginAtZero: true  
                                 }
                             },
                             plugins: {
                                 legend: {
-                                    display: false  // Ẩn chú giải để biểu đồ gọn gàng hơn
+                                    display: false  
                                 }
                             }
                         }
@@ -753,7 +725,7 @@
                     return chart;
                 }
                 
-                // Khởi tạo các biểu đồ nếu có dữ liệu
+           
                 {% if thong_ke_ngay %}
                 createChart('chart-ngay', 'Thống kê theo ngày', {{ thong_ke_ngay|safe }});
                 {% endif %}
@@ -770,16 +742,16 @@
                 createChart('chart-nam', 'Thống kê theo năm', {{ thong_ke_nam|safe }});
                 {% endif %}
                 
-                // Resize handler
+          
                 window.addEventListener('resize', () => {
                     Object.values(charts).forEach(chart => chart.resize());
                 });
             }
             
-            // Khởi tạo biểu đồ sau khi trang đã load
+        
             document.addEventListener('DOMContentLoaded', initializeCharts);
             
-            // Khởi tạo lại biểu đồ sau khi form submit
+         
             document.querySelector('form').addEventListener('submit', function(e) {
                 const formData = new FormData(this);
                 const searchParams = new URLSearchParams(formData);
@@ -787,9 +759,9 @@
                 fetch(window.location.pathname + '?' + searchParams.toString())
                     .then(response => response.text())
                     .then(html => {
-                        // Cập nhật nội dung của container
+                 
                         document.querySelector('.charts-grid').innerHTML = html;
-                        // Khởi tạo lại biểu đồ
+                      
                         initializeCharts();
                     });
             });

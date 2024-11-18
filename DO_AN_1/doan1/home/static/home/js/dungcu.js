@@ -38,4 +38,54 @@ document.addEventListener('DOMContentLoaded', () =>{
         form_import_open = false;
     });
 });
+document.addEventListener('DOMContentLoaded', function () {
+        
+
+    const nutSua = document.querySelectorAll('.sua');
+    const popup = document.getElementById('form_dungcu_sua');
+    const closeBtn = document.querySelector('.dongsua');
+    const form = document.getElementById('form_sua');
+
+
+    nutSua.forEach(button => {
+        button.addEventListener('click', function () {
+
+            const madc = this.getAttribute('data-id');
+            const tendc = this.getAttribute('data-tendc');
+            const soluong = this.getAttribute('data-soluong');
+            const dvt = this.getAttribute('data-dvt');
+            let ngaymua = this.getAttribute('data-ngaymua');
+            const giamua = this.getAttribute('data-giamua');
+
+            if(ngaymua) {
+                const dateObj = new Date(ngaymua);
+                ngaymua = dateObj.toISOString().split('T')[0];
+            }
+            document.getElementById('madc').value = madc;
+            document.getElementById('tendc').value = tendc;
+            document.getElementById('soluong').value = soluong;
+            document.getElementById('dvt').value = dvt;
+            document.getElementById('ngaymua').value = ngaymua;
+            document.getElementById('giamua').value = giamua;
+
+
+            const form = document.getElementById('form_sua');
+            form.action = `/sua_dungcu/${madc}/`;
+
+            popup.style.display = 'block';
+        });
+    });
+
+
+    closeBtn.addEventListener('click', function () {
+        popup.style.display = 'none';
+    });
+
+
+    window.addEventListener('click', function (e) {
+        if (e.target == popup) {
+            popup.style.display = 'none';
+        }
+    });
+})
 

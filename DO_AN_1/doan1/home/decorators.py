@@ -8,5 +8,5 @@ def admin_required(view_func):
         if request.user.is_authenticated:
             if request.user.is_superuser:
                 return view_func(request, *args, **kwargs)
-        return redirect('trangchu')  # Chuyển hướng về trang chủ nếu không có quyền
+        return redirect('trangchu') 
     return wrapper

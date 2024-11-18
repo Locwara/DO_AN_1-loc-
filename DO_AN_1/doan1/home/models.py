@@ -31,7 +31,7 @@ class CustomUserManager(BaseUserManager):
 
 
 
-class CustomUser(AbstractBaseUser, PermissionsMixin):  # Thêm PermissionsMixin
+class CustomUser(AbstractBaseUser, PermissionsMixin): 
     username = models.CharField(max_length=40, unique=True)
     email = models.EmailField(max_length=255, unique=True)
     tentk = models.CharField(max_length=20)
@@ -55,7 +55,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):  # Thêm PermissionsMixin
     def __str__(self):
         return self.username
 class Calam(models.Model):
-    macalam = models.AutoField(primary_key=True)  # Đổi thành AutoField
+    macalam = models.AutoField(primary_key=True) 
     manv = models.ForeignKey('Nhanvien', on_delete=models.CASCADE, db_column='manv')
     ngay = models.DateField()
     giobd = models.TimeField()
@@ -88,15 +88,11 @@ class Bangluong(models.Model):
         db_table = 'bangluong'
 
     def save(self, *args, **kwargs):
-        # Kiểm tra xem sogio và luongcoban có giá trị hay không
         if self.sogio is not None and self.luongcoban is not None:
-            # Tính toán tổng lương
             self.tongluong = self.sogio * self.luongcoban
         else:
-            # Xử lý nếu sogio hoặc luongcoban là None (tùy theo yêu cầu)
-            self.tongluong = 0  # Hoặc xử lý theo cách phù hợp với logic của bạn
+            self.tongluong = 0  
 
-        # Gọi phương thức save của lớp cha
         super().save(*args, **kwargs)
 
 class Nhanvien(models.Model):

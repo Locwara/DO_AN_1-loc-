@@ -2,8 +2,8 @@ from .models import CustomUser ,Calam, Baotri, Dungcu, Thongtinnguyenlieu, Bangl
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
-from django_recaptcha.fields import ReCaptchaField  # Thay đổi import
-from django_recaptcha.widgets import ReCaptchaV2Checkbox  # Thay đổi import
+from django_recaptcha.fields import ReCaptchaField  
+from django_recaptcha.widgets import ReCaptchaV2Checkbox  
 
 class LoginForm(forms.Form):
     username = forms.CharField(required=False)
@@ -64,7 +64,6 @@ class CustomUserCreationForm(UserCreationForm):
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Thêm các trường tùy chỉnh
         self.fields['phone'].widget.attrs.update({'class': 'input', 'placeholder': 'Số điện thoại'})
         self.fields['address'].widget.attrs.update({'class': 'input', 'placeholder': 'Địa chỉ'})
         self.fields['birth_date'].widget.attrs.update({'class': 'input', 'type': 'date'})
