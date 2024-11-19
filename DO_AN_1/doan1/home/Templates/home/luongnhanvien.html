@@ -14,7 +14,7 @@
     <h1>DANH SÁCH LƯƠNG</h1>
     <div class="chuatimkiem">
         <form method="GET" action="{% url 'bangluong' %}">
-            <div class="search-container">
+            <div class="search-contai   ner">
                 <input type="text" name="search" id="search"  placeholder="Tìm kiếm từ khóa">
                 <div class="chua2">
                     <p>Lương cơ bản</p>
@@ -74,7 +74,7 @@
                         </button>
                         <div class="xoa-form" id="form-xoa-{{ bangluong.maluong }}" style="display: none;">
                             <div class="chuaxoa">
-                                <p>Bạn có muốn xóa bảo trì: {{ bangluong.maluong }}?</p>
+                                <p>Bạn có muốn xóa lương: {{ bangluong.maluong }}?</p>
                                 <div class="chuanut">
                                     <button class="nut-huy" data-id="{{ bangluong.maluong }}">Hủy</button>
                                     <button onclick="window.location.href='{% url 'delete_bangluong' bangluong.maluong %}'">
@@ -91,7 +91,25 @@
             </tr>
             {% endfor %}
             
-            
+            <style>
+                .sua, .nut-xoa {
+                    background-color: var(--nut);  
+                    color: white;
+                    border: none;   
+                    padding: 6px 8px;
+                    margin: 4px;
+                    cursor: pointer;
+                    border-radius: 3px;
+                    transition: background-color 0.2s;
+                }
+                
+                .sua:hover, .nut-xoa:hover {
+                    background-color: var(--nuthover);
+                }
+                .sua:active, .nut-xoa:active{
+                    background-color: var(--nutactive);
+                }
+            </style>
 
         </tbody>
     </table>

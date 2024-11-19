@@ -599,4 +599,10 @@ body{
     #nav1 a{
         font-size: 20px !important;
     }
+   
+        .profile-info{
+            margin-left: -20px !important;
+            max-width: 375px !important;
+        }
+    
 }

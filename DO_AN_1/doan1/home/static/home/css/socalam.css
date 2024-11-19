@@ -41,7 +41,80 @@ select, input{
 padding: 4px;
 border-radius: 4px;
 }
+@media screen and (max-width: 768px) {
+    .container_calam {
+        overflow-x: auto;
+        width: 375px; 
+        max-height: 780px !important;  
+        margin-right: 0px !important;
+    }
+    .container_calam{
+        margin-left: -20px !important;
+        max-width: 375px !important;
+    }
+    table {
+        display: block !important;
+        max-height: 300px !important; 
+        overflow-y: auto !important;   
+        margin-top: 380px !important;
+    }
 
+    tbody {
+        max-height: none !important;
+        height: auto !important;
+    }
+    .search-container{
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    thead {
+        max-height: none !important;
+        height: auto !important;
+        position: static !important;
+    }
+    .search-container{
+        
+        display: flex;
+        flex-direction: column;
+    }
+    .search{
+        max-width: 100px;
+        display: flex;
+        flex-direction: column;
+    }
+    .container_calam .chuatimkiem{
+        position: fixed;
+        top: 100px;
+        display: flex !important;
+        flex-direction: column !important;
+        max-width: 200px !important;
+        gap: 4px !important;
+        
+    }
+
+    .container_calam .chuatimkiem button{
+        max-width: 125px !important;
+    }
+    .container_calam h1{
+        position: fixed;
+        font-size: 25px
+    }
+    .chua2{
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        max-width: 200px !important;
+        gap: 4px !important;
+    }
+    .container_calam_ntt, .import{
+        transform: scale(0.8) !important; 
+        position: absolute !important;
+        top: 60px !important;
+        left: 1px !important;
+        height: 640px !important;
+    }
+
+}
 .container_calam {
 
     width: 100vh;

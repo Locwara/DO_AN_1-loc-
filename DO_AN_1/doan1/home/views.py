@@ -1447,7 +1447,7 @@ def nghi_phep(request):
             LichSuThaoTac.objects.create( 
                 user=request.user, 
                 loai_thao_tac='ADD', 
-                noi_dung=f"Thêm Nghỉ phép: {np.cleaned_data['manp']}" 
+                noi_dung=f"Thêm Nghỉ phép: {np.cleaned_data['manv']}" 
                 )
             return redirect('nghiphep.html')
     else:

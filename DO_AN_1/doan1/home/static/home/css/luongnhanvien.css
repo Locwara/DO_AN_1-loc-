@@ -223,6 +223,65 @@ h1 {
 /* .item>li>#nvul{
     display: block;
 } */
+@media screen and (max-width: 768px) {
+    .container_luong {
+        overflow-x: auto;
+        width: 375px; 
+        max-height: 780px !important;  
+        margin-right: 0px !important;
+    }
+    .container_luong{
+        margin-left: -20px !important;
+        max-width: 375px !important;
+    }
+    table {
+        display: block !important;
+        max-height: 300px !important; 
+        overflow-y: auto !important;   
+        margin-top: 380px !important;
+    }
+
+    tbody {
+        max-height: none !important;
+        height: auto !important;
+    }
+
+    thead {
+        max-height: none !important;
+        height: auto !important;
+        position: static !important;
+    }
+    .search-container{
+        
+        display: flex;
+        flex-direction: column;
+    }
+    .search{
+        max-width: 100px;
+        display: flex;
+        flex-direction: column;
+    }
+    .container_luong .chuatimkiem{
+        position: fixed;
+        top: 100px;
+    }
+    .container_luong h1{
+        position: fixed;
+        font-size: 25px
+    }
+    .tb{
+        position: fixed;
+        margin-top: 320px;
+    }
+    .container_luong_ntt, .import{
+        transform: scale(0.8) !important; 
+        position: absolute !important;
+        top: 60px !important;
+        left: 1px !important;
+        height: 640px !important;
+    }
+
+}
 .container_luong {
 
     width: 100vh;
@@ -315,10 +374,6 @@ margin-right: 10px;
 .container_luong .chuanut{
     border-radius: 5px;
 }
-.container_luong .chuanut{
-    
-}
-
 
 
 

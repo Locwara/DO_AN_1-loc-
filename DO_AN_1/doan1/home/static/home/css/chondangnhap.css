@@ -97,3 +97,14 @@ html{
     width: 40%;
     
 }
+@media screen and (max-width: 768px) {
+    .container{
+        transform: scale(0.8) !important; 
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        max-width: 300px;
+    }
+
+}
