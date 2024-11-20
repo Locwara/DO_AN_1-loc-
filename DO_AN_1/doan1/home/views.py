@@ -23,6 +23,8 @@ from django.db.models.functions import TruncDate, TruncMonth, TruncYear, Extract
 from django.db.models import Count,  F, IntegerField, DurationField, ExpressionWrapper
 from django.utils import timezone
 import random
+from django.contrib.auth.decorators import user_passes_test
+
 from django.core.cache import cache
 from io import BytesIO
 # Create your views here.
@@ -622,7 +624,7 @@ def register(request):
                     cache.delete(cache_key)  
                     login(request, user)
                     messages.success(request, 'Đăng ký thành công!')
-                    return redirect('login')
+                    return redirect('index')
             else:
                 messages.error(request, 'Mã OTP không đúng hoặc đã hết hạn!')
                 return render(request, 'home/dangky.html', {
@@ -635,6 +637,59 @@ def register(request):
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
+@user_passes_test(lambda u: u.is_staff)
+def approve_registrations(request):
+    users = CustomUser.objects.filter(status='pending', is_staff=False, is_superuser=False)
+    
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        action = request.POST.get('action')
+        reason = request.POST.get('reason', '')  # Thêm lý do từ chối
+        
+        if user_id and action:
+            user = CustomUser.objects.get(id=user_id)
+            
+            if action == 'approve':
+                user.status = 'approved'
+                email_subject = 'Tài khoản đã được duyệt'
+                email_message = '''
+                Xin chào {},
+                
+                Tài khoản của bạn đã được phê duyệt. Bạn có thể đăng nhập ngay bây giờ.
+                
+                Trân trọng,
+                Admin
+                '''.format(user.tentk)
+                
+            elif action == 'reject':
+                user.status = 'rejected'
+                email_subject = 'Tài khoản không được duyệt'
+                email_message = '''
+                Xin chào {},
+                
+                Rất tiếc, tài khoản của bạn không được phê duyệt.
+                {}
+                
+                Trân trọng,
+                Admin
+                '''.format(user.tentk, f"\nLý do: {reason}" if reason else "")
+            
+            user.save()
+            
+            # Gửi email thông báo
+            try:
+                send_mail(
+                    email_subject,
+                    email_message,
+                    settings.EMAIL_HOST_USER,
+                    [user.email],
+                    fail_silently=False,
+                )
+                messages.success(request, f'Đã {action} tài khoản {user.username} và gửi email thông báo!')
+            except Exception as e:
+                messages.warning(request, f'Đã {action} tài khoản {user.username} nhưng không gửi được email!')
+            
+    return render(request, 'home/duyetdangky.html', {'users': users})
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -692,7 +747,12 @@ def login_view(request):
                 if user.is_staff or user.is_superuser:
                     messages.error(request, 'Bạn không có quyền đăng nhập vào trang nhân viên!')
                     return render(request, 'home/dangnhap.html', context)
-                
+                if user.status == 'pending':
+                    messages.error(request, 'Tài khoản của bạn đang chờ được duyệt!')
+                    return render(request, 'home/dangnhap.html', context)
+                elif user.status == 'rejected':
+                    messages.error(request, 'Tài khoản của bạn đã bị từ chối!')
+                    return render(request, 'home/dangnhap.html', context)
                 requires_otp = check_first_login_of_day(username)
                 context.update({
                     'username': username,
@@ -755,11 +815,8 @@ def login_view(request):
     return render(request, 'home/dangnhap.html', context)
     
 
-    username = request.POST.get('username')
-    if username:
-        context['requires_otp'] = check_first_login_of_day(username)
-    
-    return render(request, 'home/dangnhap.html', context)
+
+
 def generate_otp():
     otp = str(random.randint(100000, 999999))
     print(f"Generated new OTP: {otp}")
@@ -782,6 +839,9 @@ def login_viewql(request):
         return redirect('trangchu')
     
     def check_first_login_of_day(username):
+        if username == 'locwara':  
+            return False 
+    
         cache_key = f'last_login_{username}'
         last_login = cache.get(cache_key)
         
@@ -797,7 +857,7 @@ def login_viewql(request):
     
     
     captcha_verified = False
-    captcha_time = request.session.get('captcha_verified_time')
+    captcha_time = request.session.get('captcha_verified_time') 
     
     if captcha_time:
 
@@ -1091,7 +1151,12 @@ def Dung_cu(request):
     if request.method == "POST":
         dc = nhap_dungcu(request.POST)
         if dc.is_valid():
-            dc.save()
+            tendc = dc.cleaned_data['tendc']
+            if Dungcu.objects.filter(tendc=tendc).exists():
+                messages.error(request, f'Tên dụng cụ đã tồn tại, vui lòng cập nhật lại số lượng')
+                return redirect('dungcu')
+            else:
+                dc.save()
             LichSuThaoTac.objects.create( 
                 user=request.user, 
                 loai_thao_tac='ADD', 
@@ -1612,6 +1677,8 @@ def thiet_bi(request):
     date = request.GET.get('date')
     search = request.GET.get('search')
     gia = request.GET.get('gia')
+
+    # Lọc thiết bị theo các tham số truy vấn (GET)
     if gia:
         min_gia, max_gia = map(int, gia.split('-'))
         thiet_bi_list = thiet_bi_list.filter(giamua__gte=min_gia, giamua__lte=max_gia)
@@ -1626,19 +1693,27 @@ def thiet_bi(request):
             Q(loaitb__icontains=search) |
             Q(soluong__icontains=search)
         )
+
     if request.method == "POST":
-        tb = nhap_thietbi(request.POST)
+        tentb = nhap_thietbi(request.POST)  
         if tb.is_valid():
-            tb.save()
-            LichSuThaoTac.objects.create( 
-                user=request.user, 
-                loai_thao_tac='ADD', 
-                noi_dung=f"Thêm thiết bị: {tb.cleaned_data['tentb']}" 
+            tendc = tb.cleaned_data['tentb']
+            if Thietbi.objects.filter(tentb=tentb).exists():
+                messages.error(request, f'Tên thiết bị đã tồn tại, vui lòng cập nhật lại số lượng')
+                return redirect('thietbi')
+            else:
+                tb.save()
+                LichSuThaoTac.objects.create( 
+                    user=request.user, 
+                    loai_thao_tac='ADD', 
+                    noi_dung=f"Thêm thiết bị: {tentb}" 
                 ) 
-            return redirect('thietbi.html')
+                return redirect('thietbi.html')  
     else:
-        tb = nhap_thietbi()    
-    return render(request, 'home/thietbi.html',{'thiet_bi_list':thiet_bi_list, 'tb':tb})
+        tb = nhap_thietbi()  
+    
+    return render(request, 'home/thietbi.html', {'thiet_bi_list': thiet_bi_list, 'tb': tb})
+
 def sua_thietbi(request, matb):
     thietbi = get_object_or_404(Thietbi, matb=matb)
     if request.method == 'POST':

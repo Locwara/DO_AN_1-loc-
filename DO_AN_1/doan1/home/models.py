@@ -2,8 +2,8 @@
 from django.db import models
 from django import forms
 from django.contrib.auth.models import AbstractUser, AbstractBaseUser, BaseUserManager, PermissionsMixin
-# Create your models here.,...
-
+# Create your models here.,..
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 
         
@@ -31,7 +31,13 @@ class CustomUserManager(BaseUserManager):
 
 
 
-class CustomUser(AbstractBaseUser, PermissionsMixin): 
+class CustomUser(AbstractBaseUser, PermissionsMixin):
+    STATUS_CHOICES = [
+        ('pending', 'Chờ duyệt'),
+        ('approved', 'Đã duyệt'),
+        ('rejected', 'Từ chối'),
+    ]
+    
     username = models.CharField(max_length=40, unique=True)
     email = models.EmailField(max_length=255, unique=True)
     tentk = models.CharField(max_length=20)
@@ -39,10 +45,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     address = models.TextField(null=True, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False) 
+    is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(null=True)
-    is_superuser = models.IntegerField(null=False)
+    last_login = models.DateTimeField(default=timezone.now)
+    is_superuser = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
 
     objects = CustomUserManager()
 

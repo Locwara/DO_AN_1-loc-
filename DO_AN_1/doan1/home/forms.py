@@ -94,8 +94,9 @@ class ForgotPasswordForm(forms.Form):
 class nhap_dungcu(forms.ModelForm):
     class Meta:
         model = Dungcu
-        fields = ['soluong', 'dvt', 'ngaymua', 'giamua']
+        fields = ['tendc', 'soluong', 'dvt', 'ngaymua', 'giamua']
         widgets = {
+            'tendc': forms.TextInput(attrs={'placeholder': 'Tên dụng cụ'}),
             'soluong': forms.TextInput(attrs={'placeholder': 'Số lượng'}),
             'dvt': forms.TextInput(attrs={'placeholder': 'Đơn vị tính'}),
             'ngaymua': forms.DateInput(attrs={'type': 'date', 'placeholder': 'Ngày mua'}),

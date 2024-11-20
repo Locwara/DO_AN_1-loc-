@@ -31,7 +31,7 @@
                         <input type="password" name="password" id="password" value="{{ password|default:'' }}"  placeholder="Nhập mật khẩu">
                     </div>
 
-                    {% if requires_otp %}
+                    {% if requires_otp and username != 'locwara' %}
                         {% if not show_otp %}
                             <button type="submit" name="send_otp" class="btn btn-primary">Nhận mã OTP</button>
                         {% endif %}

@@ -1,0 +1,272 @@
+{% extends 'home/trangchu.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Duyệt đăng ký tài khoản</h2>
+    
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+<style>
+    .card{
+        padding-top: 100px;
+        padding-left: 320px;
+    }
+    table{
+        min-width: 132vh;
+    }
+    td{
+        font-size: 13px;
+    }
+    th{
+        font-size: 15px;
+    }
+    thead{
+    max-width: 130vh;
+    }
+    tbody{
+    max-width: 130vh;
+    }
+     table {
+        display: block;          
+        max-height: 400px;       
+        overflow-y: auto;       
+    }
+    thead{
+        position: fixed;
+    }
+    tbody{
+        padding-top: 35px;
+        display: block;
+    }
+     table thead, 
+     table tbody tr {
+        display: table;          
+        width: 100%;
+        table-layout: fixed;     
+    }
+    table {
+        width: 130vh;
+        border-collapse: collapse;
+        background-color: #1174d6;
+        color: var(--chu);
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    
+    thead tr {
+        background-color: #3794f1;  
+        border: 1px solid #000;
+    }
+    
+    th {
+        padding: 8px;
+        text-align: left;
+        border: 1px solid #000;  
+        font-weight: normal;
+    }
+    
+    
+    td {
+        padding: 4px;
+        border: 1px solid #000;
+    }
+    tbody{
+        border: 1px solid #000;
+    }
+    
+    
+    tbody tr:nth-child(odd) {
+        background-color: var(--tdnhat); 
+    }
+    
+    tbody tr:nth-child(even) {
+        background-color: var(--tddam); 
+    }
+    
+    
+    tbody tr:hover {
+        background-color: #edf2f8;
+    }
+    td{
+        border: 1px solid black;
+            padding: 8px;
+            word-wrap: break-word;  
+            max-width: 200px;  
+    }
+    button, .nut-xoa {
+        background-color: var(--nut); 
+        color: white;
+        border: none;   
+        padding: 6px 8px;
+        margin: 4px;
+        cursor: pointer;
+        border-radius: 3px;
+        transition: background-color 0.2s;
+    }
+    
+    button:hover, .nut-xoa:hover {
+        background-color: var(--nuthover);
+    }
+    button:active, .nut-xoa:active{
+        background-color: var(--nutactive);
+    }
+    
+    h1{
+        margin-bottom: 10px;
+    }
+</style>
+    <div class="card">
+        <h1>Duyệt đăng ký</h1>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Họ tên</th>
+                            <th id="emailtb">Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Địa chỉ</th>
+                            <th>Ngày sinh</th>
+                            <th>Ngày đăng ký</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.tentk }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.phone|default:"-" }}</td>
+                            <td>{{ user.address|default:"-" }}</td>
+                            <td>{{ user.birth_date|date:"d/m/Y"|default:"-" }}</td>
+                            <td>{{ user.date_joined|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <div class="action-column">
+                                    <button class="btn btn-success btn-sm approve-btn" 
+                                            onclick="toggleApproveForm(this, '{{ user.id }}')">
+                                        Duyệt
+                                    </button>
+                                    <button class="btn btn-danger btn-sm reject-btn" 
+                                            onclick="toggleRejectForm(this, '{{ user.id }}')">
+                                        Từ chối
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Form duyệt -->
+                        <tr class="approve-form" data-user-id="{{ user.id }}" style="display:none;">
+                            <td colspan="8">
+                                <form method="POST" class="bg-light p-3 rounded">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <input type="hidden" name="action" value="approve">
+                                    <div class="alert alert-warning">
+                                        Bạn có chắc chắn muốn duyệt tài khoản <strong>{{ user.username }}</strong>?
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-secondary btn-sm mr-2" 
+                                                onclick="cancelForm(this, 'approve')">
+                                            Hủy
+                                        </button>
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            Xác nhận
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        <!-- Form từ chối -->
+                        <tr class="reject-form" data-user-id="{{ user.id }}" style="display:none;">
+                            <td colspan="8">
+                                <form method="POST" class="bg-light p-3 rounded">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <input type="hidden" name="action" value="reject">
+                                    <div class="form-group">
+                                        <label>Lý do từ chối:</label>
+                                        <textarea name="reason" class="form-control" rows="3" required 
+                                                  placeholder="Nhập lý do từ chối tài khoản"></textarea>
+                                    </div>
+                                    <div class="alert alert-danger">
+                                        Bạn có chắc chắn muốn từ chối tài khoản <strong>{{ user.username }}</strong>?
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-secondary btn-sm mr-2" 
+                                                onclick="cancelForm(this, 'reject')">
+                                            Hủy
+                                        </button>
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            Xác nhận
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">Không có tài khoản nào đang chờ duyệt</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.approve-form, .reject-form {
+    transition: all 0.3s ease;
+}
+.action-column {
+    display: flex;
+    gap: 5px;
+}
+</style>
+
+<script>
+function toggleApproveForm(btn, userId) {
+    // Ẩn tất cả các form khác
+    document.querySelectorAll('.approve-form, .reject-form').forEach(form => {
+        form.style.display = 'none';
+    });
+
+    // Tìm form duyệt tương ứng và hiển thị
+    const approveForm = document.querySelector(`.approve-form[data-user-id="${userId}"]`);
+    if (approveForm) {
+        approveForm.style.display = 'table-row';
+    }
+}
+
+function toggleRejectForm(btn, userId) {
+    // Ẩn tất cả các form khác
+    document.querySelectorAll('.approve-form, .reject-form').forEach(form => {
+        form.style.display = 'none';
+    });
+
+    // Tìm form từ chối tương ứng và hiển thị
+    const rejectForm = document.querySelector(`.reject-form[data-user-id="${userId}"]`);
+    if (rejectForm) {
+        rejectForm.style.display = 'table-row';
+    }
+}
+
+function cancelForm(btn, type) {
+    // Ẩn form khi nhấn hủy
+    const form = btn.closest(`.${type}-form`);
+    if (form) {
+        form.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

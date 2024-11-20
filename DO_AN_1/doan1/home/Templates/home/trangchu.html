@@ -55,6 +55,9 @@
 
                 </div>
                 <div id="nav3">
+                    {% if user.is_superuser %}
+                    <p onclick="navigateTo('/duyet-dang-ky/')" class="dtk" >Duyệt đăng ký</p>
+                    {% endif %}
                     <a class="bi bi-person-circle" href="#" onclick="navigateTo('/profile')"></a>
                     <p onclick="navigateTo('/profile')">{{ user.tentk }}</p>
                     {% if user.is_superuser %}
@@ -71,6 +74,12 @@
                 </div>
 
                 <style>
+                    .dtk{
+                        padding: 6px;
+                        background-color: var(--nut);
+                        margin-right: 20px;
+                        border-radius: 4px !important;
+                    }
                     #nav3 p{
                         cursor: pointer;
                     }
