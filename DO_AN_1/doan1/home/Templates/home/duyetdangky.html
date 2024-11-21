@@ -16,29 +16,29 @@
 <style>
     .card{
         padding-top: 100px;
-        padding-left: 320px;
+        margin-left: 320px;
     }
-    table{
+    .card table{
         min-width: 132vh;
     }
-    td{
+    .card td{
         font-size: 13px;
     }
-    th{
+    .card th{
         font-size: 15px;
     }
-    thead{
+    .card thead{
     max-width: 130vh;
     }
-    tbody{
+    .card tbody{
     max-width: 130vh;
     }
-     table {
+    .card  table {
         display: block;          
         max-height: 400px;       
         overflow-y: auto;       
     }
-    thead{
+    .card thead{
         position: fixed;
     }
     tbody{
@@ -101,7 +101,7 @@
             word-wrap: break-word;  
             max-width: 200px;  
     }
-    button, .nut-xoa {
+    .card button, .nut-xoa {
         background-color: var(--nut); 
         color: white;
         border: none;   
@@ -112,15 +112,77 @@
         transition: background-color 0.2s;
     }
     
-    button:hover, .nut-xoa:hover {
+    .card button:hover, .nut-xoa:hover {
         background-color: var(--nuthover);
     }
-    button:active, .nut-xoa:active{
+    .card button:active, .nut-xoa:active{
         background-color: var(--nutactive);
     }
     
-    h1{
+    .card h1{
         margin-bottom: 10px;
+    }
+    @media screen and (max-width: 768px) {
+        .card {
+            overflow-x: auto;
+            width: 375px; 
+            max-height: 780px !important;  
+            margin-right: 0px !important;
+        }
+        .card{
+            margin-left: 5px !important;
+            max-width: 375px !important;
+        }
+        table {
+            display: block !important;
+            max-height: 300px !important; 
+            overflow-y: auto !important;   
+        }
+        .chua2{
+            display: flex;
+            flex-direction: column;
+            max-width: 200px;
+        }
+        .chua2 button{
+            max-width: 100px;
+        }
+        tbody {
+            max-height: none !important;
+            height: auto !important;
+        }
+    
+        thead {
+            max-height: none !important;
+            height: auto !important;
+            position: static !important;
+        }
+        .search-container{
+            
+            display: flex;
+            flex-direction: column;
+        }
+        .search{
+            max-width: 100px;
+            display: flex;
+            flex-direction: column;
+        }
+        .card .chuatimkiem{
+            position: fixed;
+            top: 100px;
+        }
+        .card h1{
+            margin-top: -40px;
+            position: fixed;
+            font-size: 25px
+        }
+        .container_ntt, .import{
+            transform: scale(0.8) !important; 
+            position: absolute !important;
+            top: 60px !important;
+            left: 1px !important;
+            height: 640px !important;
+        }
+    
     }
 </style>
     <div class="card">
