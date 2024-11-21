@@ -130,15 +130,17 @@
         {% csrf_token %}
         <div class="chuanut">
             <input type="hidden" name="manv" id="manv" readonly>
-            <input type="text" name="hoten" id="hoten" required>
+            <input type="text" name="hoten" id="hoten" placeholder="Tên nhân viên" required>
+            <p>Ngày sinh</p>
             <input type="date" name="ngaysinh" id="ngaysinh" required>
             <p>Giới tính</p>
             {{ nv.gioitinh }}
             <input type="number" name="sdt" id="sdt" required>
-            <input type="text" name="diachi" id="diachi" required>
+            <input type="text" name="diachi" id="diachi" placeholder="Địa chỉ" required>
+            <p>Ngày vào làm</p>
             <input type="date" name="ngayvaolam" id="ngayvaolam" required>
-            <input type="text" name="vitricongviec" id="vitricongviec" required>
-            <input type="text" name="trangthai" id="trangthai" required>
+            <input type="text" name="vitricongviec" id="vitricongviec" placeholder="Vị trí công việc" required>
+            <input type="text" name="trangthai" id="trangthai" placeholder="Trạng thái" required>
         </div>
         <div class="chuanutthem">
             <button type="submit">Cập nhật</button>

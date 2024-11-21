@@ -175,11 +175,72 @@ margin-right: 10px;
 
 }
 
-.container_khonguyenlieu    .xoa{
-    padding: 5px;
-    background-color: #C4A484;
+.xoa-form {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 120px;
+    width: 300px;
+    background-color: #fff;
+    border-radius: 4px;
+    border: 2px solid var(--tddam);
+    padding: 16px;
+    z-index: 1000;
+}
+
+.chuanut {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.chuaxoa {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+}
+
+.chuaxoa p{
+    color: #000 !important;
+    font-weight: bold;
+
+}
+
+.xoa-form button {
+    padding: 8px 16px;
+    background-color: var(--nut);
     border-radius: 5px;
-} 
+    cursor: pointer;
+    border: none;
+    min-width: 80px;
+    color: #fff;
+}
+
+.xoa-form button:hover {
+    background-color: var(--nuthover);
+
+}
+
+.xoa-form button:active {
+    background-color: var(--nutactive);
+
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    display: none;  
+}
 
 
 table {

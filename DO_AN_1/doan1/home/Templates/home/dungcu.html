@@ -99,13 +99,13 @@
     <form method="POST" id="form_sua">
         {% csrf_token %}
         <div class="chuanut">
-            <input type="hidden" name="madc" id="madc" readonly>
-            <input type="text" name="tendc" id="tendc" required>
-            <input type="number" name="soluong" id="soluong" required>
-            <input type="text" name="dvt" id="dvt" required>
+            <input type="hidden" name="madc" id="madc" placeholder="Mã dụng cụ" readonly>
+            <input type="text" name="tendc" id="tendc"placeholder="Tên dụng cụ" required>
+            <input type="number" name="soluong" id="soluong" placeholder="Số lượng" required>
+            <input type="text" name="dvt" id="dvt" placeholder="Đơn vị tính" required>
             <p id="ngaymua1"> Ngày mua </p>
             <input type="date" name="ngaymua" id="ngaymua" required>
-            <input type="number" name="giamua" id="giamua" required>
+            <input type="number" name="giamua" id="giamua" placeholder="Giá mua" required>
         </div>
         <div class="chuanutthem">
             <button type="submit">Cập nhật</button>

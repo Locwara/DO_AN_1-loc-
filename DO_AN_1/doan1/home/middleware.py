@@ -25,6 +25,8 @@ class AuthenticationMiddleware:
             reverse('bangluong'),
             reverse('socalam'),
             reverse('nghiphep'),
+            reverse('lichsu'),
+            reverse('approve_registrations'),
             
         ]
 

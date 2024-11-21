@@ -93,9 +93,10 @@
         <form method="POST" id="form_sua">
             {% csrf_token %}
             <div class="chuanut">
-                <input type="text" name="manl" id="manl" readonly>
-                <input type="text" name="tennl" id="tennl" required>
-                <input type="number" name="gia" id="gia" required>
+                <input type="hidden" name="manl" id="manl" readonly>
+                <input type="text" name="tennl" id="tennl" placeholder="Tên nguyên liệu" required>
+                <input type="number" name="gia" id="gia"placeholder="Giá" required>
+                <p>Ngày hết hạn</p>
                 <input type="date" name="ngayhethan" id="ngayhethan" required>
             </div>
             <div class="chuanutthem">

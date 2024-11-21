@@ -31,7 +31,6 @@
 
         </form>
 
-        <button class="in">In</button>
     </div>
     <table>
         <thead>
@@ -85,9 +84,9 @@
         {% csrf_token %}
         <div class="chuanut">
             <input type="hidden" name="manl" id="manl" readonly>
-            <input type="text" name="tennl" id="tennl" required>
-            <input type="text" name="dvt" id="dvt" required>
-            <input type="number" name="soluong" id="soluong" required>
+            <input type="text" name="tennl" id="tennl" placeholder="Tên nguyên liệu" required>
+            <input type="text" name="dvt" id="dvt" placeholder="Đơn vị tính" required>
+            <input type="number" name="soluong" id="soluong" placeholder="Số lượng" required>
         </div>
         <div class="chuanutthem">
             <button type="submit">Cập nhật</button>

@@ -110,13 +110,13 @@
         {% csrf_token %}
         <div class="chuanut">
             <input type="hidden" name="matb" id="matb" readonly>
-            <input type="text" name="tentb" id="tentb" required>
-            <input type="text" name="loaitb" id="loaitb" required>
-            <input type="number" name="soluong" id="soluong" required>
-            <input type="text" name="tinhtrang" id="tinhtrang" required>
+            <input type="text" name="tentb" id="tentb" placeholder="Tên thiết bị" required>
+            <input type="text" name="loaitb" id="loaitb" placeholder="Loại thiết bị" required>
+            <input type="number" name="soluong" id="soluong" placeholder="Số lượng" required>
+            <input type="text" name="tinhtrang" id="tinhtrang" placeholder="Tình trạng" required>
             <p id="ngaymua1">Ngày mua</p>
             <input type="date" name="ngaymua" id="ngaymua" required>
-            <input type="number" name="giamua" id="giamua" required>
+            <input type="number" name="giamua" id="giamua" placeholder="Giá mua" required>
         </div>
         <div class="chuanutthem">
             <button type="submit">Cập nhật</button>
