@@ -1501,7 +1501,7 @@ def nghi_phep(request):
     if search:
         nghi_phep_list = nghi_phep_list.filter(
             Q(manv__hoten__icontains=search) |
-            Q(lydonghi__icontains=search) 
+            Q(lydonghi=search) 
         )
     if request.method == "POST":
         np = nhap_nghiphep(request.POST)
@@ -1693,8 +1693,8 @@ def thiet_bi(request):
 
     if request.method == "POST":
         tentb = nhap_thietbi(request.POST)  
-        if tb.is_valid():
-            tendc = tb.cleaned_data['tentb']
+        if tentb.is_valid():
+            tentb = tb.cleaned_data['tentb']
             if Thietbi.objects.filter(tentb=tentb).exists():
                 messages.error(request, f'Tên thiết bị đã tồn tại, vui lòng cập nhật lại số lượng')
                 return redirect('thietbi')
@@ -1793,7 +1793,12 @@ def Nguyen_lieu(request):
     if request.method == "POST":
         nl = nhap_nguyenlieu(request.POST)
         if nl.is_valid():
-            nl.save()
+            nl = nl.cleaned_data['tennl']
+            if Thongtinnguyenlieu.objects.filter(tennl=nl).exists():
+                messages.error(request, f'Tên nguyên liệu bị đã tồn tại, vui lòng cập nhật lại số lượng')
+                return redirect('thongtinnguyenlieu')
+            else:
+                nl.save()
             LichSuThaoTac.objects.create( 
                 user=request.user, 
                 loai_thao_tac='ADD', 
@@ -1906,7 +1911,12 @@ def nhan_vien(request):
     if request.method == "POST":
         nv = nhap_nhanvien(request.POST)
         if nv.is_valid():
-            nv.save()
+            nv = nv.cleaned_data['hoten']
+            if Nhanvien.objects.filter(hoten=nv).exists():
+                messages.error(request, f'Tên thiết bị đã tồn tại')
+                return redirect('nhanvien')
+            else:
+                tb.save()
             LichSuThaoTac.objects.create( 
                 user=request.user, 
                 loai_thao_tac='ADD', 
