@@ -281,7 +281,20 @@ def export_excel_nhansu(request):
         df_luong.columns = ['Tháng lương', 'Số giờ', 
                            'Lương cơ bản','Tổng lương','Họ tên nhân viên']
     df_luong.to_excel(writer, sheet_name='Bảng lương', index=False)
-
+    
+    socalam_data = Calam.objects.annotate(
+        ten_nhanvien=F('manv__hoten')
+    ).values(
+        'ten_nhanvien',
+        'ngay',
+        'giobd',
+        'giokt',
+    )
+    df_calam = pd.DataFrame(list(socalam_data))
+    if not df_calam.empty:
+        df_calam.columns = ['Ngày làm', 'Giờ bắt đầu', 
+                           'Giờ kết thúc','Họ tên nhân viên']
+    df_calam.to_excel(writer, sheet_name='Số ca làm', index=False)
 
     for sheet_name in writer.sheets:
         worksheet = writer.sheets[sheet_name]
@@ -1027,8 +1040,10 @@ def import_excel_baotri(request):
             success_ip = 0
             for index, row in df.iterrows():
                 try:
+                    matb_id = row['Mã thiết bị']
+                    thietbi = Thietbi.objects.get(matb=matb_id)
                     Baotri.objects.create(
-                        matb = row['Mã thiết bị'],
+                        matb = thietbi,
                         ngaybt = row['Ngày bảo trì'],
                         mota = row['Mô tả'],
                         chiphi = row['Chi phí'],
@@ -1177,15 +1192,18 @@ def import_excel_dungcu(request):
             success_ip = 0
             for index, row in df.iterrows():
                 try:
-                    Dungcu.objects.create(
-                        madc = row['Mã dụng cụ'],
-                        tendc = row['Tên dụng cụ'],
-                        soluong = row['Số lượng'],
-                        dvt = row['Đơn vị tính'],
-                        ngaymua = row['Ngày mua'],
-                        giamua = row['Giá mua']
-                    )
-                    success_ip += 1
+                    if Dungcu.objects.filter(tendc=row['Tên dụng cụ'].strip()).exists():
+                
+                        messages.error(request, f'Hàng {index + 2} đã tồn tại')
+                    else:
+                        Dungcu.objects.create(
+                            tendc = row['Tên dụng cụ'],
+                            soluong = row['Số lượng'],
+                            dvt = row['Đơn vị tính'],
+                            ngaymua = row['Ngày mua'],
+                            giamua = row['Giá mua']
+                        )
+                        success_ip += 1
                 except Exception as e:
                     messages.error(request, f'Lỗi ở dòng {index + 2}: {str(e)}')
             if success_ip > 0:
@@ -1555,8 +1573,10 @@ def import_excel_nghiphep(request):
             success_ip = 0
             for index, row in df.iterrows():
                 try:
+                    manv_id = row['Mã nhân viên']
+                    nhanvien = Nhanvien.objects.get(manv=manv_id)
                     Nghiphep.objects.create(
-                        manv = row['Mã nhân viên'],
+                        manv = nhanvien,
                         ngaybd = row['Ngày bắt đầu'],
                         ngaykt = row['Ngày kết thúc'],
                         lydonghi = row['Lý do nghỉ'],
@@ -1590,8 +1610,10 @@ def import_excel_calam(request):
         
             for index, row in df.iterrows():
                 try:
+                    manv_id = row['Mã nhân viên']
+                    nhanvien = Nhanvien.objects.get(manv=manv_id)
                     Calam.objects.create(
-                        manv = row['Mã nhân viên'],
+                        manv = nhanvien,
                         ngay = row['Ngày'],
                         giobd = row['Giờ bắt đầu'],
                         giokt = row['Giờ kết thúc']
@@ -1738,8 +1760,13 @@ def import_excel_thietbi(request):
             df = pd.read_excel(excel_f)
             success_ip = 0
             for index, row in df.iterrows():
-                try:
-                    Thietbi.objects.create( 
+                try: 
+                    if Thietbi.objects.filter(tentb=row['Tên thiết bị'].strip()).exists():
+            
+                        messages.error(request, f'Hàng {index + 2} đã tồn tại')
+        
+                    else:
+                        Thietbi.objects.create( 
                         tentb = row['Tên thiết bị'],
                         loaitb = row['Loại thiết bị'],
                         soluong = row['Số lượng'],
@@ -1747,7 +1774,7 @@ def import_excel_thietbi(request):
                         ngaymua = row['Ngày mua'],
                         giamua = row['Giá mua']
                     )
-                    success_ip += 1
+                        success_ip += 1
                 except Exception as e:
                     messages.error(request, f'Lỗi ở dòng {index + 2}: {str(e)}')
             if success_ip > 0:
@@ -1836,15 +1863,18 @@ def import_excel_thongtinnguyenlieu(request):
             success_ip = 0
             for index, row in df.iterrows():
                 try:
-                    Thongtinnguyenlieu.objects.create(
-                        manl = row['Mã nguyên liệu'],
+                    if Thongtinnguyenlieu.objects.filter(tennl=row['Tên nguyên liệu'].strip()).exists():
+                    
+                        messages.error(request, f'Hàng {index + 2} đã tồn tại')
+                    else:
+                        Thongtinnguyenlieu.objects.create(
                         tennl = row['Tên nguyên liệu'],
                         gia = row['Giá'],
                         dvt = row['Đơn vị tính'],
                         soluong = row['Số lượng'],
                         ngayhethan = row['Ngày hết hạn']
-                    )
-                    success_ip += 1
+                        )
+                        success_ip += 1
                 except Exception as e:
                     messages.error(request, f'Lỗi ở dòng {index + 2}: {str(e)}')
             if success_ip > 0:
@@ -1911,12 +1941,7 @@ def nhan_vien(request):
     if request.method == "POST":
         nv = nhap_nhanvien(request.POST)
         if nv.is_valid():
-            nv = nv.cleaned_data['hoten']
-            if Nhanvien.objects.filter(hoten=nv).exists():
-                messages.error(request, f'Tên thiết bị đã tồn tại')
-                return redirect('nhanvien')
-            else:
-                tb.save()
+            nv.save()
             LichSuThaoTac.objects.create( 
                 user=request.user, 
                 loai_thao_tac='ADD', 
@@ -1972,10 +1997,11 @@ def import_excel_thongtinnhanvien(request):
         
         for index, row in df.iterrows():
             try:
+                
                 Nhanvien.objects.create(
                     hoten = row['Họ tên'].strip(),  
                     ngaysinh = row['Ngày sinh'],
-                    gioitinh = row['Giới tính'],
+                    gioitinh = True if row['Giới tính'].strip() == 'Nam' else False,
                     sdt = str(row['Số điện thoại']).strip(),
                     diachi = row['Địa chỉ'],
                     ngayvaolam = row['Ngày vào làm'],

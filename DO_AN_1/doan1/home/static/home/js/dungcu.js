@@ -87,5 +87,40 @@ document.addEventListener('DOMContentLoaded', function () {
             popup.style.display = 'none';
         }
     });
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    document.body.appendChild(overlay);
+
+    const deleteButtons = document.querySelectorAll('.nut-xoa');
+    const cancelButtons = document.querySelectorAll('.nut-huy');
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const id = this.getAttribute('data-id');
+            const form = document.getElementById(`form-xoa-${id}`);
+
+            document.querySelectorAll('.xoa-form').forEach(f => {
+                f.style.display = f === form ? 'block' : 'none';
+            });
+
+            overlay.style.display = 'block';
+        });
+    });
+
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const id = this.getAttribute('data-id');
+            const form = document.getElementById(`form-xoa-${id}`);
+            form.style.display = 'none';
+            overlay.style.display = 'none';
+        });
+    });
+
+    overlay.addEventListener('click', function () {
+        document.querySelectorAll('.xoa-form').forEach(form => {
+            form.style.display = 'none';
+        });
+        overlay.style.display = 'none';
+    });
 })
 
