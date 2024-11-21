@@ -622,7 +622,6 @@ def register(request):
                 if form.is_valid():
                     user = form.save()
                     cache.delete(cache_key)  
-                    login(request, user)
                     messages.success(request, 'Đăng ký thành công!')
                     return redirect('index')
             else:

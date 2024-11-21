@@ -25,6 +25,10 @@
 .chuanv{
     background-color: var(--nuthover);
 }
+.chua2{
+    margin-top: 5px;
+    padding: 4px;
+}
 .subnv #lnv{
     background-color: #3b8bf4;
 

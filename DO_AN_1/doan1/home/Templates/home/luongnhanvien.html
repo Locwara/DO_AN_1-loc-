@@ -16,6 +16,8 @@
         <form method="GET" action="{% url 'bangluong' %}">
             <div class="search-contai   ner">
                 <input type="text" name="search" id="search"  placeholder="Tìm kiếm từ khóa">
+                <button type="submit">Tìm kiếm</button>
+                <button type="button" onclick="window.location.href='{% url 'bangluong' %}'">Hiển thị tất cả</button>
                 <div class="chua2">
                     <p>Lương cơ bản</p>
                     <select name="status" id="search-status">
@@ -30,8 +32,7 @@
                     <input type="date" name="date" id="search-date">
                 </div>
                 
-                <button type="submit">Tìm kiếm</button>
-                <button type="button" onclick="window.location.href='{% url 'bangluong' %}'">Hiển thị tất cả</button>
+                
             </div>
           
         </form>

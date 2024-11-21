@@ -271,6 +271,10 @@ tbody tr td[colspan="6"] {
     }
 
 }
+
+#search{
+    margin-bottom: 4px;
+}
 .search-container{
     display: flex;
     width: 100vh;
