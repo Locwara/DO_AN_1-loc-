@@ -1227,8 +1227,8 @@ def Kho_nguyen_lieu(request):
         kho_nguyen_lieu_list = kho_nguyen_lieu_list.filter(soluong__gte=min_gia, soluong__lte=max_gia)
     if search:
         kho_nguyen_lieu_list = kho_nguyen_lieu_list.filter(
-            Q(manl__icontains=search) |
-            Q(manl__icontains=search) |
+           
+            Q(tennl=search) |
             Q(dvt__icontains=search) |
             Q(soluong__icontains=search)
         )
@@ -1279,7 +1279,7 @@ def bang_luong(request):
         .order_by('-thangluong', 'manv__hoten'))  
 
 
-    search = request.GET.get('search').strip()
+    search = request.GET.get('search')
     gia = request.GET.get('gia')
     thang = request.GET.get('thang')
     nam = request.GET.get('nam')
@@ -1500,8 +1500,7 @@ def nghi_phep(request):
         nghi_phep_list = nghi_phep_list.filter(trangthai=status)
     if search:
         nghi_phep_list = nghi_phep_list.filter(
-            Q(manp__icontains=search) |
-            Q(manv__icontains=search) |
+            Q(manv__hoten__icontains=search) |
             Q(lydonghi__icontains=search) 
         )
     if request.method == "POST":
@@ -1639,8 +1638,7 @@ def so_ca_lam(request):
         ca_lam_list = ca_lam_list.filter(ngay=date)
     if search:
         ca_lam_list = ca_lam_list.filter(
-            Q(macalam__icontains=search) |
-            Q(manv__icontains=search) 
+            Q(manv__hoten__icontains=search) 
         )
     print(ca_lam_list) 
     if request.method == 'POST':
@@ -1788,8 +1786,7 @@ def Nguyen_lieu(request):
         nguyen_lieu_list = nguyen_lieu_list.filter(ngayhethan=date)
     if search:
         nguyen_lieu_list = nguyen_lieu_list.filter(
-            Q(manl__icontains=search) |
-            Q(manl__icontains=search) |
+            Q(tennl=search) |
             Q(dvt__icontains=search) |
             Q(soluong__icontains=search)
         )
