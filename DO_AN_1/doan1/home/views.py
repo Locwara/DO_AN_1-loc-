@@ -1279,7 +1279,7 @@ def bang_luong(request):
         .order_by('-thangluong', 'manv__hoten'))  
 
 
-    search = request.GET.get('search', '').strip()
+    search = request.GET.get('search').strip()
     gia = request.GET.get('gia')
     thang = request.GET.get('thang')
     nam = request.GET.get('nam')
