@@ -45,10 +45,19 @@
                             </div>
                         {% endif %}
                     {% else %}
+                       <div class="chua">
                         <button type="submit" name="login_without_otp" class="btn btn-primary">Đăng nhập</button>
+                        <a href="#" onclick="navigateTo('/forgot-password/')" >Quên mật khẩu</a>
+                       </div>
                     {% endif %}
+                    <br>
+                    
                 </div>
-
+                <script>
+                    function navigateTo(path) {
+                        window.location.href = `http://127.0.0.1:8000${path}`;
+                    }
+                </script>
                 {% if not captcha_verified %}
                 <div class="captcha-container">
                     <div class="form-group captcha">
@@ -63,9 +72,13 @@
     </div>
 </body>
 <style>
-
-    
-
+    .chua{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
     .has-overlay {
         position: relative;
     }

@@ -81,7 +81,6 @@ class Nghiphep(models.Model):
     ngaybd = models.DateField()
     ngaykt = models.DateField()
     lydonghi = models.CharField(max_length=50)
-    trangthai = models.CharField(max_length=10)
     
     class Meta:
         db_table = 'nghiphep'
@@ -111,6 +110,25 @@ class Nhanvien(models.Model):
         (True, 'Nam'),
         (False, 'Nữ'),
     ]
+    
+    # Định nghĩa choices cho vị trí công việc
+    PHUC_VU = 'Nhân viên phục vụ'
+    PHA_CHE = 'Nhân viên pha chế' 
+    KHO = 'Nhân viên kho'
+    QUAN_LY = 'Quản lý'
+    
+    CV_CHOICES = [
+        (PHUC_VU, 'Nhân viên phục vụ'),
+        (PHA_CHE, 'Nhân viên pha chế'),
+        (KHO, 'Nhân viên kho'),
+        (QUAN_LY, 'Quản lý'),
+    ]
+    NL = 'Nghỉ làm'
+    DL = 'Đang làm'
+    TT_CHOICES = [
+        (NL, 'Nghỉ làm'),
+        (DL, 'Đang làm'),
+    ]
     manv = models.AutoField(primary_key=True) 
     hoten = models.CharField(max_length=30)
     ngaysinh = models.DateField()
@@ -118,8 +136,12 @@ class Nhanvien(models.Model):
     sdt = models.IntegerField()
     diachi = models.CharField(max_length=70)
     ngayvaolam = models.DateField()
-    vitricongviec = models.CharField(max_length=20)
-    trangthai = models.CharField(max_length=20)
+    vitricongviec = models.CharField(
+        max_length=30,
+        choices=CV_CHOICES,
+        default=PHUC_VU
+    )
+    trangthai = models.CharField(max_length=20, choices=TT_CHOICES, default=DL)
 
     class Meta:
         db_table = 'nhanvien'
@@ -127,11 +149,25 @@ class Nhanvien(models.Model):
 
 
 class Thietbi(models.Model):
+    TBPC = 'Thiết bị pha chế'
+    TBQL = 'Thiết bị quản lý'
+    TBLT = 'Thiết bị lưu trữ'
+    T = 'Tốt'
+    KT = 'Không tốt'
+    LTB_CHOIES = [
+        (TBPC, 'Thiết bị pha chế'),
+        (TBQL, 'Thiết bị quản lý'),
+        (TBLT, 'Thiết bị lưu trữ'),
+    ]
+    TT_CHOIES = [
+        (T, 'Tốt'), 
+        (KT, 'Không tốt'),
+    ]
     matb = models.AutoField(max_length=10, primary_key=True)
     tentb = models.CharField(max_length=50)
-    loaitb = models.CharField(max_length=20)
+    loaitb = models.CharField(max_length=20, choices=LTB_CHOIES, default=TBPC)
     soluong =models.FloatField()
-    tinhtrang =models.CharField(max_length=20)
+    tinhtrang =models.CharField(max_length=20, choices=TT_CHOIES, default=T)
     ngaymua =models.DateField()
     giamua=models.FloatField()
     class Meta:
@@ -148,19 +184,34 @@ class Baotri(models.Model):
         db_table = 'baotri'
 
 class Dungcu(models.Model):
+    CAI = 'Cái'
+    BICH = 'Bịch'
+
+    DVT_CHOIES = [
+        (CAI, 'Cái'),
+        (BICH, 'Bịch')
+    ]
     madc = models.AutoField(max_length=10, primary_key=True)
     tendc = models.CharField(max_length=50)
     soluong =models.IntegerField()
-    dvt = models.CharField(max_length=20)
+    dvt = models.CharField(max_length=20, choices=DVT_CHOIES, default=CAI)
     ngaymua=models.DateField()
     giamua=models.FloatField()
     class Meta:
         db_table = 'dungcu'
 
 class Thongtinnguyenlieu(models.Model):
+    CAI = 'Cái'
+    KG = 'KG'
+    BICH= 'Bịch'
+    DVT_CHOIES = [
+        (CAI, 'Cái'),
+        (KG, 'KG'),
+        (BICH, 'Bịch'),
+    ]
     manl = models.AutoField(max_length=10, primary_key=True)
     tennl = models.CharField(max_length=30)
-    dvt = models.CharField(max_length=10)
+    dvt = models.CharField(max_length=10, choices=DVT_CHOIES, default=CAI)
     soluong = models.FloatField()
     gia = models.FloatField()
     ngayhethan = models.DateField()

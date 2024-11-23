@@ -19,14 +19,7 @@
                     <button type="submit">Tìm kiếm</button>
                     <button type="button"  onclick="window.location.href='{% url 'nghiphep' %}'">Hiển thị tất cả</button>
                 </div>
-                <div class="chua2">
-                    <label for="">Trạng thái</label>
-                    <select name="status" id="search-status">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="Chưa duyệt">Chưa duyệt</option>
-                        <option value="Đã duyệt">Đã duyệt</option>
-                    </select>
-                </div>
+    
                 <div class="chua2">
                     <label for="">Ngày bắt đầu</label>
                 <input type="date" name="date1" id="search-date">
@@ -50,7 +43,6 @@
                 <th>Ngày bắt đầu</th>
                 <th>Ngày kết thúc</th>
                 <th>Lý do</th>
-                <th>Trạng thái</th>
                 <th>Thao tác</th>
             </tr>
         </thead>
@@ -61,7 +53,6 @@
                 <td>{{ nghiphep.ngaybd|date:"Y-m-d" }}</td>
                 <td>{{ nghiphep.ngaykt|date:"Y-m-d" }}</td>
                 <td>{{ nghiphep.lydonghi}}</td>
-                <td>{{ nghiphep.trangthai}}</td>
 
                 <td class="chuanut">
                         <button class="sua" data-id="{{ nghiphep.manp}}" 
@@ -104,7 +95,7 @@
                 <p> Ngày kết thúc </p>
                 <input type="date" name="ngaykt" id="ngaykt" required>
                 <input type="text" name="lydonghi" id="lydonghi" placeholder="Lý do nghỉ" required>
-                <input type="text" name="trangthai" id="trangthai" placeholder="Trạng thái" required>
+                
             </div>
             <div class="chuanutthem">
                 <button type="submit">Cập nhật</button>
@@ -128,7 +119,6 @@
                 <p>Ngày kết thúc</p>
                 {{ np.ngaykt }}
                 {{ np.lydonghi }}
-                {{ np.trangthai }}
                 
             </div>
             <div class="chuanutthem">

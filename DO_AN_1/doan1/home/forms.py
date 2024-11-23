@@ -98,7 +98,7 @@ class nhap_dungcu(forms.ModelForm):
         widgets = {
             'tendc': forms.TextInput(attrs={'placeholder': 'Tên dụng cụ'}),
             'soluong': forms.TextInput(attrs={'placeholder': 'Số lượng'}),
-            'dvt': forms.TextInput(attrs={'placeholder': 'Đơn vị tính'}),
+            'dvt': forms.Select(choices=Dungcu.DVT_CHOIES),
             'ngaymua': forms.DateInput(attrs={'type': 'date', 'placeholder': 'Ngày mua'}),
             'giamua': forms.TextInput(attrs={'placeholder': 'Giá mua'}),
         }
@@ -120,13 +120,12 @@ class nhap_luongnhanvien(forms.ModelForm):
 class nhap_nghiphep(forms.ModelForm):
     class Meta:
         model = Nghiphep
-        fields = ['manv', 'ngaybd', 'ngaykt', 'lydonghi', 'trangthai']
+        fields = ['manv', 'ngaybd', 'ngaykt', 'lydonghi']
         widgets = {
             'manv': forms.Select(attrs={'placeholder': 'Chọn nhân viên'}), 
             'ngaybd': forms.DateInput(attrs={'type': 'date', 'placeholder': 'Ngày bắt đầu'}),
             'ngaykt': forms.DateInput(attrs={'type': 'date', 'placeholder': 'Ngày kết thúc'}),
             'lydonghi': forms.TextInput(attrs={'placeholder': 'Lý do nghỉ'}),
-            'trangthai': forms.TextInput(attrs={'placeholder': 'Trạng thái'}),
         }
     def __init__(self, *args, **kwargs):
         super(nhap_nghiphep, self).__init__(*args, **kwargs)
@@ -138,9 +137,9 @@ class nhap_thietbi(forms.ModelForm):
         fields = ['tentb', 'loaitb', 'soluong', 'tinhtrang', 'ngaymua', 'giamua']
         widgets = {
             'tentb': forms.TextInput(attrs={'placeholder': 'Tên thiết bị'}),
-            'loaitb': forms.TextInput(attrs={'placeholder': 'Loại thiết bị'}),
+            'loaitb': forms.Select(choices=Thietbi.LTB_CHOIES),
             'soluong': forms.TextInput(attrs={'placeholder': 'Số lượng'}),
-            'tinhtrang': forms.TextInput(attrs={'placeholder': 'Tình trạng'}),
+            'tinhtrang': forms.Select(choices=Thietbi.TT_CHOIES),
             'ngaymua': forms.DateInput(attrs={'type': 'date', 'placeholder': 'Ngày mua'}),
             'giamua': forms.TextInput(attrs={'placeholder': 'Giá mua'}),
         }
@@ -155,8 +154,8 @@ class nhap_nhanvien(forms.ModelForm):
             'sdt': forms.TextInput(attrs={'placeholder': 'Số điện thoại', 'class': 'form-control'}),
             'diachi': forms.TextInput(attrs={'placeholder': 'Địa chỉ', 'class': 'form-control'}),
             'ngayvaolam': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'vitricongviec': forms.TextInput(attrs={'placeholder': 'Vị trí công việc', 'class': 'form-control'}),
-            'trangthai': forms.TextInput(attrs={'placeholder': 'Trạng thái', 'class': 'form-control'}),
+            'vitricongviec': forms.Select(choices=Nhanvien.CV_CHOICES),
+            'trangthai': forms.Select(choices=Nhanvien.TT_CHOICES),
         }
     
 class nhap_thongtinnguyenlieu(forms.ModelForm):
@@ -166,7 +165,7 @@ class nhap_thongtinnguyenlieu(forms.ModelForm):
         widgets = {
             'tennl': forms.TextInput(attrs={'placeholder': 'Tên nguyên liệu'}),
             'gia': forms.TextInput(attrs={'placeholder': 'Giá'}),
-            'dvt': forms.TextInput(attrs={'placeholder': 'Đơn vị tính'}),
+            'dvt': forms.Select(choices=Thongtinnguyenlieu.DVT_CHOIES),
             'soluong': forms.TextInput(attrs={'placeholder': 'Số lượng'}),
             'ngayhethan': forms.DateInput(attrs={'type': 'date', 'placeholder': 'Ngày hết hạn'}),
         }

@@ -31,6 +31,14 @@
                     </select>
                 </div>
                 <div class="chua2">
+                    <label for="">Đơn vị tính</label>
+                    <select name="dvt">
+                        <option value="">Chọn đơn vị tính</option>
+                        <option value="Cái">Cái</option>
+                        <option value="Bịch">Bịch</option>
+                    </select>
+                </div>
+                <div class="chua2">
                     <label for="">Ngày mua</label>
                 <input type="date" name="date" id="search-date">
                 </div>
@@ -102,7 +110,12 @@
             <input type="hidden" name="madc" id="madc" placeholder="Mã dụng cụ" readonly>
             <input type="text" name="tendc" id="tendc"placeholder="Tên dụng cụ" required>
             <input type="number" name="soluong" id="soluong" placeholder="Số lượng" required>
-            <input type="text" name="dvt" id="dvt" placeholder="Đơn vị tính" required>
+            <select name="dvt" id="dvt" required>
+                <option value="">Chọn đơn vị tính</option>
+                <option value="Cái">Cái</option>
+                <option value="Bịch">Bịch</option>
+               
+            </select>
             <p id="ngaymua1"> Ngày mua </p>
             <input type="date" name="ngaymua" id="ngaymua" required>
             <input type="number" name="giamua" id="giamua" placeholder="Giá mua" required>
@@ -125,6 +138,7 @@
         <div class="chuanut">
             {{ dc.tendc }}
             {{ dc.soluong }}
+            <p>Đơn vị tính</p>
             {{ dc.dvt }}
             <p> Ngày mua </p>
             {{ dc.ngaymua }}

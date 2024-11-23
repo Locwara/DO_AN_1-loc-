@@ -99,7 +99,6 @@ document.addEventListener('DOMContentLoaded', function(){
             let ngaybd = this.getAttribute('data-ngaybd');
             let ngaykt = this.getAttribute('data-ngaykt');
             const lydonghi = this.getAttribute('data-lydonghi');
-            const trangthai = this.getAttribute('data-trangthai');
             if(ngaybd) {
                 const dateObj = new Date(ngaybd);
                 ngaybd = dateObj.toISOString().split('T')[0];
@@ -110,11 +109,9 @@ document.addEventListener('DOMContentLoaded', function(){
             }
 
             document.getElementById('manp').value = manp;
-
             document.getElementById('ngaybd').value = ngaybd;
             document.getElementById('ngaykt').value = ngaykt;
             document.getElementById('lydonghi').value = lydonghi;
-            document.getElementById('trangthai').value = trangthai;
 
 
             const form = document.getElementById('form_sua');

@@ -25,7 +25,15 @@
                         <option value="50 - 100">50 - 100</option>
                     </select>
                 </div>
-                
+                <div class="chua2">
+                    <label for="">Đơn vị tính</label>
+                    <select name="dvt">
+                        <option value="">Chọn đơn vị tính</option>
+                        <option value="Cái">Cái</option>
+                        <option value="KG">KG</option>
+                        <option value="Bịch">Bịch</option>
+                    </select>
+                </div>
                 
             </div>
 
@@ -85,8 +93,15 @@
         <div class="chuanut">
             <input type="hidden" name="manl" id="manl" readonly>
             <input type="text" name="tennl" id="tennl" placeholder="Tên nguyên liệu" required>
-            <input type="text" name="dvt" id="dvt" placeholder="Đơn vị tính" required>
+            <select name="dvt" id="dvt" required>
+                <option value="">Chọn đơn vị tính</option>
+                <option value="Cái">Cái</option>
+                <option value="KG">KG</option>
+                <option value="Bịch">Bịch</option>
+               
+            </select>
             <input type="number" name="soluong" id="soluong" placeholder="Số lượng" required>
+
         </div>
         <div class="chuanutthem">
             <button type="submit">Cập nhật</button>

@@ -298,7 +298,7 @@
                     </li>
                 </ul>
             </div>
-            {% if is_superuser %}
+            {% if user.is_superuser %}
             <div class="lichsu side-item1">
                 <a href="#" onclick="navigateTo('/lichsu/')">Lịch Sử</a>
             </div>
@@ -635,7 +635,7 @@
                 <div class="nguyenlieu">
                     <div class="chuaxuat">
                         <h1>Nguyên liệu</h1>
-                        <a href="{% url 'export-excel-thietbi' %}" class="btn btn-success">Xuất báo cáo thiết bị</a>
+                        <a href="{% url 'export-excel-thietbi' %}" class="btn btn-success">Xuất báo cáo thiết bị và nguyên liệu</a>
                         <br>
                         <a href="{% url 'xuat_baocao_thietbi_nguyenlieu' %}" class="btn btn-primary">Xuất báo cáo tình trạng thiết bị và nguyên liệu</a>
                     </div>

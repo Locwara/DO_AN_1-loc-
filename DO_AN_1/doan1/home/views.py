@@ -688,7 +688,7 @@ def approve_registrations(request):
             
             user.save()
             
-            # Gửi email thông báo
+
             try:
                 send_mail(
                     email_subject,
@@ -1149,6 +1149,9 @@ def Dung_cu(request):
     date = request.GET.get('date')
     search = request.GET.get('search')
     gia = request.GET.get('gia')
+    dvt =  request.GET.get('dvt')
+    if dvt:
+        dung_cu_list = dung_cu_list.filter(dvt=dvt)
     if gia:
         min_gia, max_gia = map(int, gia.split('-'))
         dung_cu_list = dung_cu_list.filter(giamua__gte=min_gia, giamua__lte=max_gia)
@@ -1240,6 +1243,9 @@ def Kho_nguyen_lieu(request):
     kho_nguyen_lieu_list = Thongtinnguyenlieu.objects.all()
     search = request.GET.get('search')
     soluong = request.GET.get('soluong')
+    dvt = request.GET.get('dvt')
+    if dvt:
+        kho_nguyen_lieu_list = kho_nguyen_lieu_list.filter(dvt=dvt)
     if soluong:
         min_gia, max_gia = map(int, soluong.split('-'))
         kho_nguyen_lieu_list = kho_nguyen_lieu_list.filter(soluong__gte=min_gia, soluong__lte=max_gia)
@@ -1696,8 +1702,11 @@ def thiet_bi(request):
     date = request.GET.get('date')
     search = request.GET.get('search')
     gia = request.GET.get('gia')
+    ltb = request.GET.get('ltb')
 
     # Lọc thiết bị theo các tham số truy vấn (GET)
+    if ltb:
+        thiet_bi_list = thiet_bi_list.filter(loaitb = ltb)
     if gia:
         min_gia, max_gia = map(int, gia.split('-'))
         thiet_bi_list = thiet_bi_list.filter(giamua__gte=min_gia, giamua__lte=max_gia)
@@ -1714,8 +1723,8 @@ def thiet_bi(request):
         )
 
     if request.method == "POST":
-        tentb = nhap_thietbi(request.POST)  
-        if tentb.is_valid():
+        tb = nhap_thietbi(request.POST)  
+        if tb.is_valid():
             tentb = tb.cleaned_data['tentb']
             if Thietbi.objects.filter(tentb=tentb).exists():
                 messages.error(request, f'Tên thiết bị đã tồn tại, vui lòng cập nhật lại số lượng')

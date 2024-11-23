@@ -43,6 +43,7 @@
                 <div class="chua2">
                     <label for="">Giới tính</label>
                     <select name="gioitinh" id="search-vtcv">
+                        <option value="">Chọn</option>
                         <option value="1">Nam</option>
                         <option value="0">Nữ</option>
                         
@@ -92,6 +93,7 @@
                 <td class="chuanut">
                     <button class="sua" data-id="{{ nhanvien.manv}}" data-hoten="{{ nhanvien.hoten }}"
                         data-ngaysinh="{{ nhanvien.ngaysinh }}" data-sdt="{{ nhanvien.sdt }}"
+                        data-gioitinh="{{ nhanvien.gioitinh }}"
                         data-diachi="{{ nhanvien.diachi }}" data-ngayvaolam="{{ nhanvien.ngayvaolam}}"
                         data-vitricongviec="{{ nhanvien.vitricongviec}}"
                         data-trangthai="{{ nhanvien.trangthai}}">Sửa</button>
@@ -139,8 +141,20 @@
             <input type="text" name="diachi" id="diachi" placeholder="Địa chỉ" required>
             <p>Ngày vào làm</p>
             <input type="date" name="ngayvaolam" id="ngayvaolam" required>
-            <input type="text" name="vitricongviec" id="vitricongviec" placeholder="Vị trí công việc" required>
-            <input type="text" name="trangthai" id="trangthai" placeholder="Trạng thái" required>
+           
+            <select name="vitricongviec" id="vitricongviec" required>
+                <option value="">Chọn</option>
+                <option value="Nhân viên phục vụ">Nhân viên phục vụ</option>
+                <option value="Nhân viên pha chế">Nhân viên pha chế</option>
+                <option value="Nhân viên kho">Nhân viên Kho</option>
+                <option value="Quản lý">Quản lý</option>
+            </select>
+            <select name="trangthai" id="trangthai" required>
+                <option value="">Chọn</option>
+                <option value="Đang làm">Đang làm</option>
+                <option value="Nghỉ làm">Nghỉ làm</option>
+               
+            </select>
         </div>
         <div class="chuanutthem">
             <button type="submit">Cập nhật</button>
