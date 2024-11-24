@@ -36,6 +36,7 @@
                         <option value="">Chọn đơn vị tính</option>
                         <option value="Cái">Cái</option>
                         <option value="Bịch">Bịch</option>
+                        <option value="KG">KG</option>
                     </select>
                 </div>
                 <div class="chua2">
@@ -57,6 +58,7 @@
                     <th>Đơn Vị Tính</th>
                     <th>Ngày Mua</th>
                     <th>Giá</th>
+                    <th>Tổng giá</th>
                     <th>Thao tác</th>
                 </tr>
             </thead>
@@ -69,6 +71,7 @@
                     <td>{{dungcu.dvt}}</td>
                     <td>{{dungcu.ngaymua|date:"Y-m-d"}}</td>
                     <td>{{dungcu.giamua|floatformat}}</td>
+                    <td>{{dungcu.tonggia|floatformat}}</td>
                     <td class="chuanut">
                         <button class="sua" data-id="{{ dungcu.madc}}" data-tendc="{{ dungcu.tendc }}"
                             data-soluong="{{ dungcu.soluong }}" data-dvt="{{ dungcu.dvt }}"
@@ -114,6 +117,7 @@
                 <option value="">Chọn đơn vị tính</option>
                 <option value="Cái">Cái</option>
                 <option value="Bịch">Bịch</option>
+                <option value="KG">KG</option>
                
             </select>
             <p id="ngaymua1"> Ngày mua </p>

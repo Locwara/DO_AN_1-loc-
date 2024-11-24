@@ -170,9 +170,16 @@ class Thietbi(models.Model):
     tinhtrang =models.CharField(max_length=20, choices=TT_CHOIES, default=T)
     ngaymua =models.DateField()
     giamua=models.FloatField()
+    tonggia=models.FloatField(max_length=30)
     class Meta:
         db_table = 'thietbi'
+    def save(self, *args, **kwargs):
+        if self.soluong is not None and self.giamua is not None:
+            self.tonggia = self.soluong * self.giamua
+        else:
+            self.tonggia = 0  
 
+        super().save(*args, **kwargs)
 class Baotri(models.Model):
     mabt = models.AutoField(max_length=10, primary_key=True)
     matb = models.ForeignKey('Thietbi', on_delete=models.CASCADE, db_column='matb')
@@ -186,10 +193,12 @@ class Baotri(models.Model):
 class Dungcu(models.Model):
     CAI = 'Cái'
     BICH = 'Bịch'
+    KG = 'KG'
 
     DVT_CHOIES = [
         (CAI, 'Cái'),
-        (BICH, 'Bịch')
+        (BICH, 'Bịch'),
+        (KG, 'KG'),
     ]
     madc = models.AutoField(max_length=10, primary_key=True)
     tendc = models.CharField(max_length=50)
@@ -197,8 +206,16 @@ class Dungcu(models.Model):
     dvt = models.CharField(max_length=20, choices=DVT_CHOIES, default=CAI)
     ngaymua=models.DateField()
     giamua=models.FloatField()
+    tonggia = models.FloatField(max_length=30)
     class Meta:
         db_table = 'dungcu'
+    def save(self, *args, **kwargs):
+        if self.soluong is not None and self.giamua is not None:
+            self.tonggia = self.soluong * self.giamua
+        else:
+            self.tonggia = 0  
+
+        super().save(*args, **kwargs)
 
 class Thongtinnguyenlieu(models.Model):
     CAI = 'Cái'
@@ -215,9 +232,16 @@ class Thongtinnguyenlieu(models.Model):
     soluong = models.FloatField()
     gia = models.FloatField()
     ngayhethan = models.DateField()
-    
+    tonggia = models.FloatField(max_length=30)
     class Meta:
         db_table = 'nguyenlieu'
+    def save(self, *args, **kwargs):
+        if self.soluong is not None and self.gia is not None:
+            self.tonggia = self.soluong * self.gia
+        else:
+            self.tonggia = 0  
+
+        super().save(*args, **kwargs)
         
 
 

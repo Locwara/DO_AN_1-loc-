@@ -68,7 +68,9 @@
                 <th>Tình trạng</th>
                 <th>Ngày mua</th>
                 <th>Giá mua</th>
+                <th>Tổng giá</th>
                 <th>Thao tác</th>
+
             </tr>
         </thead>
         <tbody>
@@ -81,6 +83,7 @@
                 <td>{{ thietbi.tinhtrang }}</td>
                 <td>{{ thietbi.ngaymua|date:"Y-m-d" }}</td>
                 <td>{{ thietbi.giamua|floatformat }}</td>
+                <td>{{ thietbi.tonggia|floatformat }}</td>
                 <td class="chuanut">
                     <button class="sua" data-id="{{ thietbi.matb}}" data-tentb="{{ thietbi.tentb }}"
                         data-loaitb="{{ thietbi.loaitb }}" data-soluong="{{ thietbi.soluong }}"

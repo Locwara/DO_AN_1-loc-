@@ -45,8 +45,10 @@
             <tr>
                 <th>Mã nguyên liệu</th>
                 <th>Tên nguyên liệu</th>
-                <th>Đơn vị tính</th>
                 <th>Số lượng</th>
+                <th>Đơn vị tính</th>
+                <th>Giá</th>
+                <th>Tổng giá</th>
                 <th>Thao tác</th>
             </tr>
         </thead>
@@ -55,8 +57,10 @@
             <tr>
                 <td>{{nguyenlieu.manl}}</td>
                 <td>{{nguyenlieu.tennl}}</td>
-                <td>{{nguyenlieu.dvt}}</td>
                 <td>{{nguyenlieu.soluong|floatformat}}</td>
+                <td>{{nguyenlieu.dvt}}</td>
+                <td>{{nguyenlieu.gia}}</td>
+                <td>{{nguyenlieu.tonggia}}</td>
                 <td class="chuanut">
                     <button class="sua" data-id="{{ nguyenlieu.manl}}" data-tennl="{{ nguyenlieu.tennl }}"
                         data-dvt="{{ nguyenlieu.dvt }}" data-soluong="{{ nguyenlieu.soluong}}">Sửa</button>
