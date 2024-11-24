@@ -125,13 +125,13 @@ def xuat_baocao_nhanvien(request):
         ngaykt__gte=hom_nay
     ).select_related('manv').values(
         'manv__manv', 'manv__hoten', 'ngaybd', 'ngaykt', 
-        'lydonghi', 'trangthai'
+        'lydonghi',
     )
     
     df_nghiphep = pd.DataFrame(list(nhanviens_nghiphep))
     if not df_nghiphep.empty:
         df_nghiphep.columns = ['Mã NV', 'Họ tên', 'Ngày bắt đầu', 
-                              'Ngày kết thúc', 'Lý do nghỉ', 'Trạng thái']
+                              'Ngày kết thúc', 'Lý do nghỉ']
         df_nghiphep.to_excel(writer, sheet_name='Nhân viên nghỉ phép', index=False)
         format_sheet(writer, 'Nhân viên nghỉ phép', df_nghiphep)
     
@@ -153,13 +153,13 @@ def xuat_baocao_thietbi_nguyenlieu(request):
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
     thietbis = Thietbi.objects.exclude(tinhtrang="tốt").values(
         'matb', 'tentb', 'loaitb', 'soluong', 'tinhtrang', 
-        'ngaymua', 'giamua'
+        'ngaymua', 'giamua', 'tonggia'
     )
     
     df_thietbi = pd.DataFrame(list(thietbis))
     if not df_thietbi.empty:
         df_thietbi.columns = ['Mã TB', 'Tên TB', 'Loại TB', 'Số lượng', 
-                             'Tình trạng', 'Ngày mua', 'Giá mua']
+                             'Tình trạng', 'Ngày mua', 'Giá mua', 'Tổng giá']
         df_thietbi.to_excel(writer, sheet_name='Thiết bị cần bảo trì', index=False)
         format_sheet(writer, 'Thiết bị cần bảo trì', df_thietbi)
 
@@ -180,13 +180,13 @@ def xuat_baocao_thietbi_nguyenlieu(request):
     nguyenlieus_hethan = Thongtinnguyenlieu.objects.filter(
         ngayhethan__lte=hom_nay + pd.Timedelta(days=7)
     ).values(
-        'manl', 'tennl', 'dvt', 'soluong', 'gia', 'ngayhethan'
+        'manl', 'tennl', 'dvt', 'soluong', 'gia', 'tonggia', 'ngayhethan'
     )
     
     df_nlhethan = pd.DataFrame(list(nguyenlieus_hethan))
     if not df_nlhethan.empty:
         df_nlhethan.columns = ['Mã NL', 'Tên NL', 'Đơn vị tính', 
-                              'Số lượng', 'Giá', 'Ngày hết hạn']
+                              'Số lượng', 'Giá', 'Tổng giá', 'Ngày hết hạn']
         df_nlhethan['Ghi chú'] = 'Sắp hết hạn'
         df_nlhethan.to_excel(writer, sheet_name='Nguyên liệu sắp hết hạn', index=False)
         format_sheet(writer, 'Nguyên liệu sắp hết hạn', df_nlhethan)
@@ -227,7 +227,6 @@ def export_excel_nhansu(request):
         'ngaybd',
         'ngaykt', 
         'lydonghi',
-        'trangthai'
     ).order_by('ngaybd') 
 
     df_nghiphep = pd.DataFrame(list(nghiphep_data))
@@ -237,7 +236,6 @@ def export_excel_nhansu(request):
             'ngaybd': 'Ngày bắt đầu',
             'ngaykt': 'Ngày kết thúc',
             'lydonghi': 'Lý do nghỉ',
-            'trangthai': 'Trạng thái'
         }, inplace=True)
 
         date_columns = ['Ngày bắt đầu', 'Ngày kết thúc']
@@ -326,12 +324,13 @@ def export_excel_thietbi(request):
         'soluong',
         'tinhtrang',
         'ngaymua',
-        'giamua'
+        'giamua',
+        'tonggia'
     )
     df_thietbi = pd.DataFrame(list(thietbi_data))
     if not df_thietbi.empty:
         df_thietbi.columns = ['Tên thiết bị', 'Loại thiết bị', 'Số lượng',
-                             'Tình trạng', 'Ngày mua', 'Giá mua']
+                             'Tình trạng', 'Ngày mua', 'Giá mua', 'Tổng giá']
     df_thietbi.to_excel(writer, sheet_name='Thiết bị', index=False)
 
 
@@ -355,12 +354,13 @@ def export_excel_thietbi(request):
         'soluong',
         'dvt',
         'ngaymua',
-        'giamua'
+        'giamua',
+        'tonggia'
     )
     df_dungcu = pd.DataFrame(list(dungcu_data))
     if not df_dungcu.empty:
         df_dungcu.columns = ['Tên dụng cụ', 'Số lượng', 'Đơn vị tính',
-                            'Ngày mua', 'Giá mua']
+                            'Ngày mua', 'Giá mua', 'Tổng giá']
     df_dungcu.to_excel(writer, sheet_name='Dụng cụ', index=False)
 
 
@@ -369,12 +369,13 @@ def export_excel_thietbi(request):
         'dvt',
         'soluong',
         'gia',
+        'tonggia',
         'ngayhethan'
     )
     df_nguyenlieu = pd.DataFrame(list(nguyenlieu_data))
     if not df_nguyenlieu.empty:
         df_nguyenlieu.columns = ['Tên nguyên liệu', 'Đơn vị tính', 'Số lượng',
-                                'Giá', 'Ngày hết hạn']
+                                'Giá','Tổng giá', 'Ngày hết hạn']
     df_nguyenlieu.to_excel(writer, sheet_name='Nguyên liệu', index=False)
 
 
