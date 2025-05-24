@@ -1139,7 +1139,7 @@ def delete_dungcu(request, madc):
         noi_dung=f"Xóa Bảo trì: {mabt}")    
         LichSuThaoTac.objects.create( user=request.user, 
         loai_thao_tac='DELETE', 
-        noi_dung=f"Xóa Dụng cụ: {madc}")
+     noi_dung=f"Xóa Dụng cụ: {madc}")
         messages.success(request, 'Xóa bản ghi dụng cụ thành công!')
     except Exception as e:
         messages.error(request, f'Xóa không thành công: {str(e)}')
@@ -1916,7 +1916,7 @@ def delete_thongtinnhanvien(request, manv):
         messages.success(request, 'Xóa bản ghi thông tin nhân viên thành công!')
         LichSuThaoTac.objects.create( user=request.user, 
         loai_thao_tac='DELETE', 
-        noi_dung=f"Xóa Nhân viên: {tennl}")
+        noi_dung=f"Xóa Nhân viên: {Nhanvien.manv}")
     except Exception as e:
         messages.error(request, f'Xóa không thành công: {str(e)}')
     return redirect('thongtinnhanvien')
@@ -1943,10 +1943,11 @@ def nhan_vien(request):
         nhan_vien_list = nhan_vien_list.filter(ngayvaolam=date)
     if search:
         nhan_vien_list = nhan_vien_list.filter(
-            Q(hoten__icontains=search) |
             Q(manv__icontains=search) |
             Q(sdt__icontains=search) |
-            Q(diachi__icontains=search)
+            Q(diachi__icontains=search)  |
+            Q(vitricongviec__icontains=search) |
+            Q(ngayvaolam__icontains=search) 
         )
     if request.method == "POST":
         nv = nhap_nhanvien(request.POST)
@@ -1961,6 +1962,10 @@ def nhan_vien(request):
     else:
         nv = nhap_nhanvien()    
     return render(request, 'home/thongtinnhanvien.html', {'nhan_vien_list': nhan_vien_list, 'nv':nv })
+
+
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+
 
 
 def sua_thongtinnhanvien(request, manv):
